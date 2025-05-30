@@ -1,0 +1,321 @@
+{% extends 'base/base.html' %}
+{% block content %}
+
+<style>
+    /* Candidate Detail Styles */
+    .candidate-detail {
+        max-width: 1200px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .candidate-header {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 2rem;
+        padding: 2rem;
+    }
+
+    .candidate-image {
+        position: relative;
+        height: 100%;
+        min-height: 300px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .candidate-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .candidate-party {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .candidate-info {
+        padding: 1rem 0;
+    }
+
+    .candidate-name {
+        font-size: 2.2rem;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .candidate-position {
+        font-size: 1.5rem;
+        color: var(--secondary-color);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .candidate-meta {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #666;
+    }
+
+    .meta-item i {
+        color: var(--primary-color);
+    }
+
+    .candidate-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(0, 51, 102, 0.05);
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .candidate-actions {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 2rem;
+    }
+
+    .action-btn {
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: #00264d;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0, 51, 102, 0.2);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+    }
+
+    .btn-outline:hover {
+        background: rgba(0, 51, 102, 0.05);
+    }
+
+    .candidate-content {
+        padding: 2rem;
+        border-top: 1px solid #eee;
+    }
+
+    .content-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--secondary-color);
+    }
+
+    .manifesto-content {
+        line-height: 1.8;
+    }
+
+    .manifesto-content h3 {
+        color: var(--primary-color);
+        margin: 1.5rem 0 0.5rem;
+    }
+
+    .manifesto-content ul {
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .manifesto-content p {
+        margin-bottom: 1rem;
+    }
+
+    .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .gallery-item {
+        height: 200px;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-item:hover img {
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+        .candidate-header {
+            grid-template-columns: 1fr;
+        }
+
+        .candidate-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .candidate-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="candidate-detail">
+    <div class="candidate-header">
+        <div class="candidate-image">
+            <img src="{{ candidate.image.url|default:'https://via.placeholder.com/400x500' }}" alt="{{ candidate.user.get_full_name }}">
+            {% if candidate.party %}
+            <div class="candidate-party">{{ candidate.party }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="candidate-info">
+            <h1 class="candidate-name">{{ candidate.user.get_full_name }}</h1>
+            <h2 class="candidate-position">Candidate for {{ candidate.position.title }}</h2>
+            
+            <div class="candidate-meta">
+                <div class="meta-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>{{ candidate.course_year }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Member since {{ candidate.user.date_joined|date:"Y" }}</span>
+                </div>
+                {% if candidate.user.email %}
+                <div class="meta-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>{{ candidate.user.email }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="candidate-stats">
+                <div class="stat-card">
+                    <div class="stat-number">{{ candidate.votes_count }}</div>
+                    <div class="stat-label">Votes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ candidate.approval_rating }}%</div>
+                    <div class="stat-label">Approval</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ candidate.initiatives_count }}</div>
+                    <div class="stat-label">Initiatives</div>
+                </div>
+            </div>
+            
+            <div class="candidate-actions">
+                {% if not request.user.voter.has_voted %}
+                <a href="{% url 'vote' candidate.id %}" class="action-btn btn-primary">
+                    <i class="fas fa-vote-yea"></i> Vote for {{ candidate.user.first_name }}
+                </a>
+                {% else %}
+                <button class="action-btn btn-primary" disabled>
+                    <i class="fas fa-check-circle"></i> You've Already Voted
+                </button>
+                {% endif %}
+                <a href="{% url 'candidate' %}" class="action-btn btn-outline">
+                    <i class="fas fa-arrow-left"></i> Back to Candidates
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="candidate-content">
+        <div class="content-section">
+            <h3 class="section-title"><i class="fas fa-user-tie"></i> About</h3>
+            <div class="manifesto-content">
+                {{ candidate.bio|linebreaks }}
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3 class="section-title"><i class="fas fa-file-alt"></i> Manifesto</h3>
+            <div class="manifesto-content">
+                {{ candidate.manifesto|linebreaks }}
+            </div>
+        </div>
+        
+        {% comment %}
+        <!-- Uncomment if you add gallery functionality later -->
+        <div class="content-section">
+            <h3 class="section-title"><i class="fas fa-images"></i> Gallery</h3>
+            <div class="gallery">
+                <div class="gallery-item">
+                    <img src="https://via.placeholder.com/300x200" alt="Campaign event">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://via.placeholder.com/300x200" alt="Community service">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://via.placeholder.com/300x200" alt="Debate">
+                </div>
+            </div>
+        </div>
+        {% endcomment %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'base/base.html' %}
+{% block content %}
+
+<div class="receipt-container">
+    <div class="receipt-card">
+        <div class="receipt-header">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h2>Vote Submitted Successfully</h2>
+            <p>Thank you for participating in the {{ vote.election.title }}</p>
+        </div>
+        
+        <div class="receipt-details">
+            <div class="detail-row">
+                <span class="detail-label">Voter ID:</span>
+                <span class="detail-value">{{ vote.voter.student_id }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Voter Name:</span>
+                <span class="detail-value">{{ vote.voter.user.get_full_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Position:</span>
+                <span class="detail-value">{{ vote.position.title }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Candidate:</span>
+                <span class="detail-value">{{ vote.candidate.user.get_full_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Time Voted:</span>
+                <span class="detail-value">{{ vote.timestamp }}</span>
+            </div>
+        </div>
+        
+        <div class="receipt-actions">
+            <a href="{% url 'candidates_list' %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back to Candidates
+            </a>
+            <button onclick="window.print()" class="btn btn-secondary">
+                <i class="fas fa-print"></i> Print Receipt
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .receipt-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+    
+    .receipt-card {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .success-icon {
+        font-size: 3rem;
+        color: var(--success-color);
+        margin-bottom: 1rem;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .receipt-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        background: #00264d;
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: #f0f0f0;
+        color: var(--primary-color);
+        border: 1px solid #ddd;
+    }
+    
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+</style>
+
+{% endblock %}

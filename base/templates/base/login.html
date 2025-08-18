@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +7,7 @@
     <title>Rongo University - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Previous CSS remains the same until .status-message */
         :root {
             --primary-color: #003366;
             --secondary-color: #FFD700;
@@ -102,6 +102,120 @@
             opacity: 0.9;
         }
 
+
+        /* Enhanced Message System */
+        .message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .message-alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(120%);
+            animation: slideIn 0.5s forwards, fadeOut 0.5s forwards 4.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-alert::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            animation: progressBar 5s linear forwards;
+        }
+
+        .message-alert.success {
+            background-color: #28A745;
+            color: white;
+            border-left: 4px solid #1e7e34;
+        }
+
+        .message-alert.error {
+            background-color: #E74C3C;
+            color: white;
+            border-left: 4px solid #c0392b;
+        }
+
+        .message-alert.warning {
+            background-color: #FFA500;
+            color: white;
+            border-left: 4px solid #cc8400;
+        }
+
+        .message-alert.info {
+            background-color: #17A2B8;
+            color: white;
+            border-left: 4px solid #117a8b;
+        }
+
+        .message-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .message-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .message-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Form Error Messages */
+        .form-error {
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-error i {
+            font-size: 0.9rem;
+        }
         .welcome-message h2 {
             font-size: 2rem;
             margin-bottom: 1rem;
@@ -374,9 +488,37 @@
                 gap: 10px;
             }
         }
+
+        /* Rest of your existing CSS remains the same */
     </style>
 </head>
 <body>
+    <!-- Message Container for Toast Notifications -->
+    <div class="message-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message-alert {{ message.tags }}">
+                    <i class="message-icon fas 
+                        {% if message.tags == 'success' %}fa-check-circle
+                        {% elif message.tags == 'error' %}fa-exclamation-circle
+                        {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                        {% else %}fa-info-circle{% endif %}">
+                    </i>
+                    <div class="message-content">
+                        <div class="message-title">
+                            {% if message.tags == 'success' %}Success!
+                            {% elif message.tags == 'error' %}Error
+                            {% elif message.tags == 'warning' %}Warning
+                            {% else %}Notice{% endif %}
+                        </div>
+                        <div class="message-text">{{ message }}</div>
+                    </div>
+                    <button class="message-close">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
     <div class="login-container">
         <!-- Left Side - Welcome Message -->
         <div class="login-left">
@@ -422,26 +564,56 @@
                 <p>Enter your credentials to access the voting system</p>
             </div>
             
-            <form class="login-form" id="loginForm" method="POST">
+            <form class="login-form" id="loginForm" method="POST" novalidate>
                 {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="message-alert error" style="position: static; transform: none; animation: none; margin-bottom: 20px;">
+                        <i class="message-icon fas fa-exclamation-circle"></i>
+                        <div class="message-content">
+                            <div class="message-title">Authentication Error</div>
+                            <div class="message-text">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
                 <div class="form-group">
                     <label for="studentId">Student ID</label>
                     <i class="fas fa-user input-icon"></i>
-                    <input type="text" id="studentId" name="username" class="form-control" placeholder="Enter your student ID" required>
+                    <input type="text" id="studentId" name="username" class="form-control" 
+                           placeholder="Enter your student ID" required
+                           value="{% if form.username.value %}{{ form.username.value }}{% endif %}">
+                    {% if form.username.errors %}
+                        <div class="form-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.username.errors.0 }}
+                        </div>
+                    {% endif %}
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Password</label>
                     <i class="fas fa-lock input-icon"></i>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+                    <input type="password" id="password" name="password" class="form-control" 
+                           placeholder="Enter your password" required>
+                    {% if form.password.errors %}
+                        <div class="form-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.password.errors.0 }}
+                        </div>
+                    {% endif %}
                 </div>
                 
                 <div class="remember-forgot">
                     <div class="remember-me">
-                        <input type="checkbox" id="remember">
+                        <input type="checkbox" id="remember" name="remember">
                         <label for="remember">Remember me</label>
                     </div>
-                    <a href="#" class="forgot-password">Forgot password?</a>
+                    <a href="{% url 'password_reset' %}" class="forgot-password">Forgot password?</a>
                 </div>
                 
                 <button type="submit" class="login-btn">
@@ -471,21 +643,107 @@
     </div>
 
     <script>
-        
+        // Enhanced Message System
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close button functionality
+            document.querySelectorAll('.message-close').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.message-alert').style.display = 'none';
+                });
+            });
 
-        // Forgot password functionality
-        document.querySelector('.forgot-password').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('Password reset instructions will be sent to your registered email address.');
-        });
+            // Auto-dismiss messages after delay
+            setTimeout(() => {
+                document.querySelectorAll('.message-alert').forEach(alert => {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
 
-        // Social login buttons
-        document.querySelectorAll('.social-icon').forEach(icon => {
-            icon.addEventListener('click', function(e) {
-                e.preventDefault();
-                const provider = this.querySelector('i').classList.contains('fa-google') ? 'Google' :
-                                this.querySelector('i').classList.contains('fa-microsoft') ? 'Microsoft' : 'University ID';
-                alert(`Redirecting to ${provider} authentication...`);
+            // Form validation
+            const form = document.getElementById('loginForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    
+                    // Validate Student ID
+                    const studentId = document.getElementById('studentId');
+                    if (!studentId.value.trim()) {
+                        showFieldError(studentId, 'Student ID is required');
+                        isValid = false;
+                    }
+                    
+                    // Validate Password
+                    const password = document.getElementById('password');
+                    if (!password.value.trim()) {
+                        showFieldError(password, 'Password is required');
+                        isValid = false;
+                    }
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                        showToastMessage('error', 'Please fill in all required fields');
+                    }
+                });
+            }
+            
+            function showFieldError(field, message) {
+                let errorElement = field.nextElementSibling;
+                if (!errorElement || !errorElement.classList.contains('form-error')) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'form-error';
+                    errorElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+                    field.parentNode.appendChild(errorElement);
+                }
+                field.focus();
+            }
+            
+            function showToastMessage(type, message) {
+                const container = document.querySelector('.message-container');
+                const alert = document.createElement('div');
+                alert.className = `message-alert ${type}`;
+                alert.innerHTML = `
+                    <i class="message-icon fas 
+                        ${type === 'success' ? 'fa-check-circle' : 
+                          type === 'error' ? 'fa-exclamation-circle' : 
+                          type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}">
+                    </i>
+                    <div class="message-content">
+                        <div class="message-title">
+                            ${type.charAt(0).toUpperCase() + type.slice(1)}
+                        </div>
+                        <div class="message-text">${message}</div>
+                    </div>
+                    <button class="message-close">&times;</button>
+                `;
+                container.appendChild(alert);
+                
+                // Trigger animation
+                setTimeout(() => {
+                    alert.style.transform = 'translateX(0)';
+                }, 10);
+                
+                // Auto-dismiss
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 4500);
+                
+                // Close button
+                alert.querySelector('.message-close').addEventListener('click', function() {
+                    alert.remove();
+                });
+            }
+
+            // Social login buttons
+            document.querySelectorAll('.social-icon').forEach(icon => {
+                icon.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const provider = this.querySelector('i').classList.contains('fa-google') ? 'Google' :
+                                    this.querySelector('i').classList.contains('fa-microsoft') ? 'Microsoft' : 'University ID';
+                    showToastMessage('info', `Redirecting to ${provider} authentication...`);
+                });
             });
         });
     </script>

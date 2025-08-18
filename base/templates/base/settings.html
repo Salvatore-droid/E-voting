@@ -307,8 +307,132 @@
             font-size: 0.9rem;
         }
 
+        /* Enhanced Message System */
+        .message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .message-alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(120%);
+            animation: slideIn 0.5s forwards, fadeOut 0.5s forwards 4.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-alert::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            animation: progressBar 5s linear forwards;
+        }
+
+        .message-alert.success {
+            background-color: #28A745;
+            color: white;
+            border-left: 4px solid #1e7e34;
+        }
+
+        .message-alert.error {
+            background-color: #E74C3C;
+            color: white;
+            border-left: 4px solid #c0392b;
+        }
+
+        .message-alert.warning {
+            background-color: #FFA500;
+            color: white;
+            border-left: 4px solid #cc8400;
+        }
+
+        .message-alert.info {
+            background-color: #17A2B8;
+            color: white;
+            border-left: 4px solid #117a8b;
+        }
+
+        .message-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .message-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .message-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
 </style>
 
+<div class="message-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">
+                <i class="message-icon fas 
+                    {% if message.tags == 'success' %}fa-check-circle
+                    {% elif message.tags == 'error' %}fa-exclamation-circle
+                    {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                    {% else %}fa-info-circle{% endif %}">
+                </i>
+                <div class="message-content">
+                    <div class="message-title">
+                        {% if message.tags == 'success' %}Success!
+                        {% elif message.tags == 'error' %}Error
+                        {% elif message.tags == 'warning' %}Warning
+                        {% else %}Notice{% endif %}
+                    </div>
+                    <div class="message-text">{{ message }}</div>
+                </div>
+                <button class="message-close">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
 
 <!-- Settings Header -->
 <section class="settings-header">
@@ -341,12 +465,12 @@
         <h3>Security</h3>
         <p>Manage your password, two-factor authentication, and login security.</p>
     </div>
-    <div class="settings-card" onclick="location.href='#privacy'">
+    <div class="settings-card" onclick="location.href='{% url 'active_sessions' %}'">
         <div class="settings-card-icon">
-            <i class="fas fa-lock"></i>
+            <i class="fas fa-laptop"></i>
         </div>
-        <h3>Privacy</h3>
-        <p>Control what information is visible to others and manage data permissions.</p>
+        <h3>Active Sessions</h3>
+        <p>View and manage devices currently logged into your account.</p>
     </div>
 </div>
 
@@ -356,39 +480,62 @@
         <i class="fas fa-user-cog"></i> Profile Information
     </h2>
     
-    <form class="settings-form" id="profileForm">
+    <form method="POST" action="{% url 'settings' %}" enctype="multipart/form-data" class="settings-form">
+        {% csrf_token %}
+        <input type="hidden" name="update_profile" value="true">
+        
         <div class="form-group">
-            <label for="firstName">First Name</label>
-            <input type="text" id="firstName" class="form-control" value="John" required>
+            <label for="id_profile_picture">Profile Picture</label>
+            <div class="d-flex align-items-center">
+                <img src="{{ user.profile.get_profile_picture_url }}" 
+                     class="rounded-circle me-3" 
+                     width="80" 
+                     height="80" 
+                     alt="Profile picture">
+                <input type="file" id="id_profile_picture" name="profile_picture" class="form-control">
+            </div>
         </div>
         
         <div class="form-group">
-            <label for="lastName">Last Name</label>
-            <input type="text" id="lastName" class="form-control" value="Doe" required>
+            <label for="id_first_name">First Name</label>
+            <input type="text" id="id_first_name" name="first_name" class="form-control" 
+                   value="{{ user.first_name }}" required>
         </div>
         
         <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" class="form-control" value="john.doe@rongo.edu" required>
+            <label for="id_last_name">Last Name</label>
+            <input type="text" id="id_last_name" name="last_name" class="form-control" 
+                   value="{{ user.last_name }}" required>
         </div>
         
         <div class="form-group">
-            <label for="studentId">Student ID</label>
-            <input type="text" id="studentId" class="form-control" value="RGU2023001" readonly>
+            <label for="id_email">Email Address</label>
+            <input type="email" id="id_email" name="email" class="form-control" 
+                   value="{{ user.email }}" required>
         </div>
         
         <div class="form-group">
-            <label for="department">Department</label>
-            <input type="text" id="department" class="form-control" value="Computer Science" readonly>
+            <label for="id_phone_number">Phone Number</label>
+            <input type="tel" id="id_phone_number" name="phone_number" class="form-control" 
+                   value="{{ user.profile.phone_number }}" 
+                   placeholder="+254700000000">
         </div>
         
         <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" class="form-control" value="+254712345678">
+            <label for="id_department">Department</label>
+            <input type="text" id="id_department" name="department" class="form-control" 
+                   value="{{ user.profile.department }}" 
+                   placeholder="e.g. Computer Science">
+        </div>
+        
+        <div class="form-group">
+            <label for="id_student_id">Student ID</label>
+            <input type="text" id="id_student_id" name="student_id" class="form-control" 
+                   value="{{ user.profile.student_id }}" readonly>
         </div>
         
         <div class="form-actions">
-            <button type="button" class="btn btn-secondary">
+            <button type="button" class="btn btn-secondary" onclick="location.reload()">
                 <i class="fas fa-times"></i> Cancel
             </button>
             <button type="submit" class="btn btn-primary">
@@ -405,60 +552,76 @@
     </h2>
     <p>Customize how you receive notifications about upcoming elections, voting reminders, and results.</p>
     
-    <div class="switch-container">
-        <div class="switch-label">
-            <span>Email Notifications</span>
-            <span>Receive important notifications via email</span>
+    <form method="POST" action="{% url 'settings' %}" class="settings-form">
+        {% csrf_token %}
+        <input type="hidden" name="update_notifications" value="true">
+        
+        <div class="switch-container">
+            <div class="switch-label">
+                <span>Email Notifications</span>
+                <span>Receive important notifications via email</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" name="email_notifications" 
+                       {% if user.profile.email_notifications %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
         </div>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider"></span>
-        </label>
-    </div>
-    
-    <div class="switch-container">
-        <div class="switch-label">
-            <span>SMS Notifications</span>
-            <span>Get voting reminders via text message</span>
+        
+        <div class="switch-container">
+            <div class="switch-label">
+                <span>SMS Notifications</span>
+                <span>Get voting reminders via text message</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" name="sms_notifications" 
+                       {% if user.profile.sms_notifications %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
         </div>
-        <label class="switch">
-            <input type="checkbox">
-            <span class="slider"></span>
-        </label>
-    </div>
-    
-    <div class="switch-container">
-        <div class="switch-label">
-            <span>Push Notifications</span>
-            <span>Enable in-app notifications</span>
+        
+        <div class="switch-container">
+            <div class="switch-label">
+                <span>Push Notifications</span>
+                <span>Enable in-app notifications</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" name="push_notifications" 
+                       {% if user.profile.push_notifications %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
         </div>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider"></span>
-        </label>
-    </div>
-    
-    <div class="switch-container">
-        <div class="switch-label">
-            <span>Election Reminders</span>
-            <span>Get reminders before elections start</span>
+        
+        <div class="switch-container">
+            <div class="switch-label">
+                <span>Election Reminders</span>
+                <span>Get reminders before elections start</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" name="election_reminders" 
+                       {% if user.profile.election_reminders %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
         </div>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider"></span>
-        </label>
-    </div>
-    
-    <div class="switch-container">
-        <div class="switch-label">
-            <span>Results Announcements</span>
-            <span>Notify me when election results are published</span>
+        
+        <div class="switch-container">
+            <div class="switch-label">
+                <span>Results Announcements</span>
+                <span>Notify me when election results are published</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" name="results_announcements" 
+                       {% if user.profile.results_announcements %}checked{% endif %}>
+                <span class="slider"></span>
+            </label>
         </div>
-        <label class="switch">
-            <input type="checkbox" checked>
-            <span class="slider"></span>
-        </label>
-    </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Notification Settings
+            </button>
+        </div>
+    </form>
 </div>
 
 <!-- Security Settings Section -->
@@ -475,11 +638,18 @@
             </div>
             <div class="security-text">
                 <h4>Password</h4>
-                <p>Last changed 3 months ago</p>
+                <p>
+                    Last changed 
+                    {% if user.profile.last_password_change %}
+                        {{ user.profile.last_password_change|timesince }} ago
+                    {% else %}
+                        never
+                    {% endif %}
+                </p>
             </div>
         </div>
         <div class="security-action">
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#passwordModal">
                 <i class="fas fa-edit"></i> Change
             </button>
         </div>
@@ -496,10 +666,20 @@
             </div>
         </div>
         <div class="security-action">
-            <label class="switch">
-                <input type="checkbox">
-                <span class="slider"></span>
-            </label>
+            <form method="POST" action="{% url 'settings' %}" class="d-inline">
+                {% csrf_token %}
+                {% if user.profile.two_factor_auth %}
+                    <input type="hidden" name="disable_2fa" value="true">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        Disable
+                    </button>
+                {% else %}
+                    <input type="hidden" name="enable_2fa" value="true">
+                    <button type="submit" class="btn btn-success btn-sm">
+                        Enable
+                    </button>
+                {% endif %}
+            </form>
         </div>
     </div>
     
@@ -510,13 +690,13 @@
             </div>
             <div class="security-text">
                 <h4>Active Sessions</h4>
-                <p>2 devices currently logged in</p>
+                <p>View and manage devices logged into your account</p>
             </div>
         </div>
         <div class="security-action">
-            <button class="btn btn-secondary">
+            <a href="{% url 'active_sessions' %}" class="btn btn-secondary">
                 <i class="fas fa-eye"></i> View
-            </button>
+            </a>
         </div>
     </div>
     
@@ -531,11 +711,89 @@
             </div>
         </div>
         <div class="security-action">
-            <button class="btn btn-secondary" style="color: var(--accent-color);">
-                <i class="fas fa-trash-alt"></i> Delete
-            </button>
+            <a href="{% url 'delete_account' %}" class="btn btn-danger">
+                <i class="fas fa-trash-alt"></i> Delete Account
+            </a>
         </div>
     </div>
 </div>
+
+<!-- Password Change Modal -->
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passwordModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'settings' %}">
+                {% csrf_token %}
+                <input type="hidden" name="change_password" value="true">
+                
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id_old_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="id_old_password" name="old_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_new_password1" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="id_new_password1" name="new_password1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_new_password2" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="id_new_password2" name="new_password2" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Messages Display -->
+{% if messages %}
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    {% for message in messages %}
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header {% if message.tags %}{{ message.tags }}{% endif %}">
+            <strong class="me-auto">Notification</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            {{ message }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+// Initialize Bootstrap tooltips and popovers
+document.addEventListener('DOMContentLoaded', function() {
+    // Enable all tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Handle form submissions
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            // You can add form validation here if needed
+        });
+    });
+    
+    // Auto-dismiss messages after 5 seconds
+    setTimeout(function() {
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+        var toastList = toastElList.map(function(toastEl) {
+            return new bootstrap.Toast(toastEl).hide()
+        });
+    }, 5000);
+});
+</script>
 
 {% endblock %}

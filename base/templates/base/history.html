@@ -1,6 +1,9 @@
 {% extends 'base/base.html' %}
 {% block content %}
 
+{% load static %}
+
+
 <style>
      /* Page Header */
      .page-header {
@@ -278,21 +281,28 @@
 <div class="page-header">
     <h1><i class="fas fa-history"></i> Voting History</h1>
     <div class="search-filter">
-        <div class="search-box">
+        <form method="get" class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search elections...">
-        </div>
+            <input type="text" name="search" placeholder="Search elections..." value="{{ search_query }}">
+        </form>
         <div class="filter-dropdown">
-            <button class="filter-btn">
+            <button class="filter-btn" id="filterDropdown">
                 <i class="fas fa-filter"></i>
                 <span>Filter</span>
             </button>
+            <div class="dropdown-menu" id="filterMenu" style="display: none;">
+                <a class="dropdown-item" href="?status=">All Votes</a>
+                {% for value, label in status_choices.items %}
+                <a class="dropdown-item" href="?status={{ value }}">{{ label }}</a>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Voting History Table -->
 <div class="history-container">
+    {% if votes %}
     <table class="history-table">
         <thead>
             <tr>
@@ -305,138 +315,125 @@
             </tr>
         </thead>
         <tbody>
+            {% for vote in votes %}
             <tr>
                 <td>
-                    <div class="election-title">Student Union Elections 2023</div>
-                    <div class="election-date">May 15, 2023 - May 17, 2023</div>
-                </td>
-                <td><span class="position">President</span></td>
-                <td>
-                    <div class="candidate-info">
-                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Candidate" class="candidate-avatar">
-                        <div>
-                            <div class="candidate-name">John Mwangi</div>
-                            <div class="candidate-party">Progressive Alliance</div>
-                        </div>
+                    <div class="election-title">{{ vote.election.title }}</div>
+                    <div class="election-date">
+                        {{ vote.election.start_date|date:"M j, Y" }} - {{ vote.election.end_date|date:"M j, Y" }}
                     </div>
                 </td>
-                <td>May 16, 2023<br>10:24 AM</td>
-                <td><span class="vote-status success"><i class="fas fa-check-circle"></i> Verified</span></td>
+                <td><span class="position">{{ vote.position.title }}</span></td>
                 <td>
-                    <button class="action-btn" title="View Details"><i class="fas fa-eye"></i></button>
-                    <button class="action-btn" title="Print Receipt"><i class="fas fa-print"></i></button>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="election-title">Student Union Elections 2023</div>
-                    <div class="election-date">May 15, 2023 - May 17, 2023</div>
-                </td>
-                <td><span class="position">Secretary General</span></td>
-                <td>
+                    {% if vote.is_abstained %}
                     <div class="candidate-info">
-                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Candidate" class="candidate-avatar">
+                        <i class="fas fa-user-slash" style="font-size: 1.5rem;"></i>
                         <div>
-                            <div class="candidate-name">Sarah Atieno</div>
-                            <div class="candidate-party">Students First</div>
+                            <div class="candidate-name">Abstained</div>
                         </div>
                     </div>
-                </td>
-                <td>May 16, 2023<br>10:24 AM</td>
-                <td><span class="vote-status success"><i class="fas fa-check-circle"></i> Verified</span></td>
-                <td>
-                    <button class="action-btn" title="View Details"><i class="fas fa-eye"></i></button>
-                    <button class="action-btn" title="Print Receipt"><i class="fas fa-print"></i></button>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="election-title">Faculty Representatives 2023</div>
-                    <div class="election-date">March 3, 2023 - March 5, 2023</div>
-                </td>
-                <td><span class="position">Science Rep</span></td>
-                <td>
+                    {% else %}
                     <div class="candidate-info">
-                        <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="Candidate" class="candidate-avatar">
+                        <img src="{% if vote.candidate.image %}{{ vote.candidate.image.url }}{% else %}{% static 'images/default.jpg' %}{% endif %}" 
+                             alt="{{ vote.candidate.user.get_full_name }}" class="candidate-avatar">
                         <div>
-                            <div class="candidate-name">David Omondi</div>
-                            <div class="candidate-party">Independent</div>
+                            <div class="candidate-name">{{ vote.candidate.user.get_full_name }}</div>
+                            <div class="candidate-party">{{ vote.candidate.party|default:"Independent" }}</div>
                         </div>
                     </div>
+                    {% endif %}
                 </td>
-                <td>March 4, 2023<br>2:15 PM</td>
-                <td><span class="vote-status success"><i class="fas fa-check-circle"></i> Verified</span></td>
+                <td>{{ vote.timestamp|date:"M j, Y" }}<br>{{ vote.timestamp|time }}</td>
                 <td>
-                    <button class="action-btn" title="View Details"><i class="fas fa-eye"></i></button>
-                    <button class="action-btn" title="Print Receipt"><i class="fas fa-print"></i></button>
+                    <span class="vote-status {{ vote.status_class }}">
+                        <i class="fas 
+                            {% if vote.status == 'verified' %}fa-check-circle
+                            {% elif vote.status == 'pending' %}fa-exclamation-circle
+                            {% else %}fa-times-circle{% endif %}"></i> 
+                        {{ vote.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <button class="action-btn" title="View Details" onclick="window.location.href='{% url 'vote_detail' vote.id %}'">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn" title="Print Receipt" onclick="window.print()">
+                        <i class="fas fa-print"></i>
+                    </button>
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <div class="election-title">Sports Committee 2022</div>
-                    <div class="election-date">October 10, 2022 - October 12, 2022</div>
-                </td>
-                <td><span class="position">Sports Captain</span></td>
-                <td>
-                    <div class="candidate-info">
-                        <img src="https://randomuser.me/api/portraits/women/63.jpg" alt="Candidate" class="candidate-avatar">
-                        <div>
-                            <div class="candidate-name">Grace Wambui</div>
-                            <div class="candidate-party">Team Spirit</div>
-                        </div>
-                    </div>
-                </td>
-                <td>October 11, 2022<br>9:45 AM</td>
-                <td><span class="vote-status warning"><i class="fas fa-exclamation-circle"></i> Pending Review</span></td>
-                <td>
-                    <button class="action-btn" title="View Details"><i class="fas fa-eye"></i></button>
-                    <button class="action-btn" title="Print Receipt"><i class="fas fa-print"></i></button>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="election-title">Academic Board 2022</div>
-                    <div class="election-date">August 22, 2022 - August 24, 2022</div>
-                </td>
-                <td><span class="position">Student Rep</span></td>
-                <td>
-                    <div class="candidate-info">
-                        <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Candidate" class="candidate-avatar">
-                        <div>
-                            <div class="candidate-name">James Kariuki</div>
-                            <div class="candidate-party">Academic Front</div>
-                        </div>
-                    </div>
-                </td>
-                <td>August 23, 2022<br>4:30 PM</td>
-                <td><span class="vote-status danger"><i class="fas fa-times-circle"></i> Disputed</span></td>
-                <td>
-                    <button class="action-btn" title="View Details"><i class="fas fa-eye"></i></button>
-                    <button class="action-btn" title="Print Receipt"><i class="fas fa-print"></i></button>
-                </td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <div class="no-history">
+        <i class="fas fa-history"></i>
+        <h3>No Voting History Found</h3>
+        <p>You haven't participated in any elections yet.</p>
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">View Upcoming Elections</a>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Pagination -->
+{% if votes.paginator.num_pages > 1 %}
 <ul class="pagination">
+    {% if votes.has_previous %}
     <li class="page-item">
-        <a href="#" class="page-link disabled"><i class="fas fa-chevron-left"></i></a>
+        <a class="page-link" href="?page=1&search={{ search_query }}&status={{ status_filter }}">
+            <i class="fas fa-angle-double-left"></i>
+        </a>
     </li>
     <li class="page-item">
-        <a href="#" class="page-link active">1</a>
+        <a class="page-link" href="?page={{ votes.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+    </li>
+    {% endif %}
+    
+    {% for num in votes.paginator.page_range %}
+    {% if votes.number == num %}
+    <li class="page-item">
+        <a class="page-link active" href="?page={{ num }}&search={{ search_query }}&status={{ status_filter }}">{{ num }}</a>
+    </li>
+    {% elif num > votes.number|add:'-3' and num < votes.number|add:'3' %}
+    <li class="page-item">
+        <a class="page-link" href="?page={{ num }}&search={{ search_query }}&status={{ status_filter }}">{{ num }}</a>
+    </li>
+    {% endif %}
+    {% endfor %}
+    
+    {% if votes.has_next %}
+    <li class="page-item">
+        <a class="page-link" href="?page={{ votes.next_page_number }}&search={{ search_query }}&status={{ status_filter }}">
+            <i class="fas fa-chevron-right"></i>
+        </a>
     </li>
     <li class="page-item">
-        <a href="#" class="page-link">2</a>
+        <a class="page-link" href="?page={{ votes.paginator.num_pages }}&search={{ search_query }}&status={{ status_filter }}">
+            <i class="fas fa-angle-double-right"></i>
+        </a>
     </li>
-    <li class="page-item">
-        <a href="#" class="page-link">3</a>
-    </li>
-    <li class="page-item">
-        <a href="#" class="page-link"><i class="fas fa-chevron-right"></i></a>
-    </li>
+    {% endif %}
 </ul>
+{% endif %}
+
+<script>
+    // Toggle filter dropdown
+    document.getElementById('filterDropdown').addEventListener('click', function(e) {
+        e.preventDefault();
+        const menu = document.getElementById('filterMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.filter-dropdown')) {
+            document.getElementById('filterMenu').style.display = 'none';
+        }
+    });
+</script>
+
 
 
 {% endblock %}

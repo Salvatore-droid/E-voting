@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ election.title }} - Results</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { color: #003366; }
+        .position { margin-bottom: 20px; }
+        .position-title { font-weight: bold; font-size: 18px; }
+        .candidate { margin-left: 20px; }
+        .winner { font-weight: bold; color: green; }
+        .vote-count { float: right; }
+    </style>
+</head>
+<body>
+    <h1>{{ election.title }} - Election Results</h1>
+    
+    {% for position in positions %}
+    <div class="position">
+        <div class="position-title">
+            {{ position.title }} (Total Votes: {{ position.total_votes }})
+        </div>
+        
+        {% for candidate in position.candidates_list %}
+        <div class="candidate {% if candidate.is_winner %}winner{% endif %}">
+            {{ candidate.rank }}. {{ candidate.user.get_full_name }}
+            <span class="vote-count">
+                {{ candidate.vote_count }} votes ({{ candidate.percentage|floatformat:1 }}%)
+                {% if candidate.is_winner %} - WINNER{% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</body>
+</html>

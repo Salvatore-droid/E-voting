@@ -1,629 +1,615 @@
+
 {% extends 'base/base.html' %}
 {% block content %}
 
 <style>
-    /* Page Header */
+    /* Candidate Page Styles */
+    .candidates-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
     .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #eee;
-        }
+        text-align: center;
+        margin-bottom: 3rem;
+    }
 
-        .page-header h1 {
-            font-size: 2rem;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .page-header h1 {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
 
-        .page-header h1 i {
-            color: var(--secondary-color);
-        }
+    .page-header p {
+        color: #666;
+        font-size: 1.1rem;
+        max-width: 700px;
+        margin: 0 auto;
+    }
 
-        .election-selector {
-            position: relative;
-        }
+    /* Filter Controls */
+    .filter-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        a{
+            color: rgb(2, 30, 155);
+            text-decoration: none;
 
-        .election-dropdown {
-            background: white;
-            border: 1px solid #ddd;
-            padding: 10px 15px;
-            border-radius: 50px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            min-width: 250px;
         }
+    }
 
-        .election-dropdown:hover {
-            border-color: var(--primary-color);
-        }
+    .search-box {
+        position: relative;
+        flex: 1;
+        max-width: 400px;
+    }
 
-        .election-dropdown i {
-            color: var(--primary-color);
-        }
+    .search-box input {
+        width: 100%;
+        padding: 0.8rem 1rem 0.8rem 3rem;
+        border-radius: 50px;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
 
-        /* Candidate Filter */
-        .candidate-filter {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(0,51,102,0.1);
+    }
 
-        .filter-tab {
-            padding: 10px 20px;
-            border-radius: 50px;
-            background: white;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #777;
+    }
 
-        .filter-tab:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
+    .position-filter {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
 
-        .filter-tab.active {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
+    .position-btn {
+        padding: 0.6rem 1.2rem;
+        background: white;
+        border-radius: 50px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+        font-size: 0.9rem;
+    }
 
-        .search-box {
-            position: relative;
-            flex-grow: 1;
-            max-width: 400px;
-        }
+    .position-btn:hover {
+        background: #f5f5f5;
+    }
 
-        .search-box input {
-            padding: 10px 15px 10px 35px;
-            border-radius: 50px;
-            border: 1px solid #ddd;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
+    .position-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
 
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
-        }
+    /* Position Sections */
+    .position-section {
+        margin-bottom: 3rem;
+    }
 
-        .search-box i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #777;
-        }
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(0,51,102,0.1);
+    }
 
-        /* Candidates Grid */
+    .section-title {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .section-title i {
+        color: var(--secondary-color);
+    }
+
+    .section-count {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.2rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* Presidential Section - Special Styling */
+    .presidential-section .section-header {
+        border-bottom: 2px solid var(--secondary-color);
+    }
+
+    .presidential-section .section-title {
+        font-size: 1.8rem;
+        color: var(--primary-color);
+    }
+
+    .presidential-section .section-title i {
+        color: var(--secondary-color);
+        font-size: 1.5rem;
+    }
+
+    .presidential-section .candidate-card {
+        border: 2px solid rgba(255,215,0,0.3);
+    }
+
+    /* Candidates Grid */
+    .candidates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .candidate-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .candidate-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .candidate-banner {
+        height: 120px;
+        background: linear-gradient(135deg, var(--primary-color), #001a33);
+        position: relative;
+    }
+
+    .candidate-party {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .candidate-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 4px solid white;
+        object-fit: cover;
+        position: absolute;
+        bottom: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .candidate-info {
+        padding: 5rem 1.5rem 1.5rem;
+        text-align: center;
+    }
+
+    .candidate-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .candidate-position {
+        color: var(--secondary-color);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .candidate-course {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .candidate-bio {
+        color: #555;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .candidate-stats {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .candidate-stat {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .candidate-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .candidate-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-vote {
+        background: var(--secondary-color);
+        color: var(--primary-color);
+        border: none;
+    }
+
+    .btn-vote:hover {
+        background: #e6c300;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(255,215,0,0.2);
+    }
+
+    .btn-details {
+        background: white;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+    }
+
+    .btn-details:hover {
+        background: rgba(0,51,102,0.05);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,51,102,0.1);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 10px;
+        grid-column: 1 / -1;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--secondary-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .empty-state p {
+        color: #666;
+        margin-bottom: 2rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
         .candidates-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .candidate-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .candidate-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .candidate-banner {
-            height: 120px;
-            background: linear-gradient(135deg, var(--primary-color), #001a33);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .candidate-banner::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
-        }
-
-        .candidate-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 4px solid white;
-            object-fit: cover;
-            position: absolute;
-            bottom: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .candidate-party {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 5px 10px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .candidate-content {
-            padding: 60px 20px 20px;
-            text-align: center;
-        }
-
-        .candidate-name {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-
-        .candidate-position {
-            color: var(--secondary-color);
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .candidate-course {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-        }
-
-        .candidate-bio {
-            color: #555;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin-bottom: 20px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .candidate-stats {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-weight: 700;
-            color: var(--primary-color);
-            font-size: 1.1rem;
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            color: #777;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .candidate-actions {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .action-btn {
-            padding: 8px 15px;
-            border-radius: 50px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background: #00264d;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(0, 51, 102, 0.2);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-        }
-
-        .btn-outline:hover {
-            background: rgba(0, 51, 102, 0.05);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(0, 51, 102, 0.1);
-        }
-
-        /* Featured Candidate */
-        .featured-candidate {
-            grid-column: 1 / -1;
-            display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
         }
-
-        .featured-image {
-            position: relative;
-            min-height: 300px;
-            background: linear-gradient(135deg, var(--primary-color), #001a33);
+        
+        .filter-controls {
+            flex-direction: column;
+            align-items: stretch;
         }
+        
+        .search-box {
+            max-width: 100%;
+        }
+    }
 
-        .featured-image img {
+    @media (max-width: 576px) {
+        .candidates-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .candidate-actions {
+            flex-direction: column;
+        }
+        
+        .candidate-btn {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            justify-content: center;
         }
+    }
 
-        .featured-party {
-            position: absolute;
+           
+        .message-container {
+            position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 5px 15px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 350px;
+            width: 100%;
         }
 
-        .featured-content {
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .featured-tag {
-            display: inline-block;
-            background: var(--secondary-color);
-            color: var(--primary-color);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .featured-name {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-
-        .featured-position {
-            font-size: 1.2rem;
-            color: var(--secondary-color);
-            font-weight: 600;
+        .message-alert {
+            padding: 15px 20px;
+            border-radius: 8px;
             margin-bottom: 15px;
-        }
-
-        .featured-course {
-            color: #666;
-            font-size: 1rem;
-            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(120%);
+            animation: slideIn 0.5s forwards, fadeOut 0.5s forwards 4.5s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .featured-bio {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 25px;
+        .message-alert::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            animation: progressBar 5s linear forwards;
         }
 
-        .featured-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
+        .message-alert.success {
+            background-color: #28A745;
+            color: white;
+            border-left: 4px solid #1e7e34;
         }
 
-        .featured-stat {
-            text-align: center;
-            padding: 15px;
-            background: rgba(0, 51, 102, 0.05);
-            border-radius: 5px;
+        .message-alert.error {
+            background-color: #E74C3C;
+            color: white;
+            border-left: 4px solid #c0392b;
         }
 
-        .featured-stat-number {
+        .message-alert.warning {
+            background-color: #FFA500;
+            color: white;
+            border-left: 4px solid #cc8400;
+        }
+
+        .message-alert.info {
+            background-color: #17A2B8;
+            color: white;
+            border-left: 4px solid #117a8b;
+        }
+
+        .message-icon {
             font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
+            margin-right: 15px;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-title {
+            font-weight: 600;
             margin-bottom: 5px;
         }
 
-        .featured-stat-label {
-            font-size: 0.8rem;
-            color: #666;
-        }
-
-        /* No Candidates Message */
-        .no-candidates {
-            text-align: center;
-            padding: 3rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .no-candidates i {
-            font-size: 3rem;
-            color: var(--secondary-color);
-            margin-bottom: 1rem;
-        }
-
-        .no-candidates h3 {
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .no-candidates p {
-            color: #666;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin-top: 2rem;
-        }
-
-        .page-item {
-            list-style: none;
-        }
-
-        .page-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 5px;
-            background: white;
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-            border: 1px solid #ddd;
-            transition: all 0.3s ease;
-        }
-
-        .page-link:hover {
-            background: rgba(0, 51, 102, 0.1);
-        }
-
-        .page-link.active {
-            background: var(--primary-color);
+        .message-close {
+            background: none;
+            border: none;
             color: white;
-            border-color: var(--primary-color);
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
         }
 
-        .page-link.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .message-close:hover {
+            opacity: 1;
         }
 
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
 </style>
 
-
-
-<div class="page-header">
-    <h1><i class="fas fa-user-graduate"></i> Candidates</h1>
-    <div class="election-selector">
-        <button class="election-dropdown">
-            <i class="fas fa-calendar-alt"></i>
-            <span>{{ active_election.title }}</span>
-            <i class="fas fa-chevron-down"></i>
-        </button>
-    </div>
-</div>
-
-<!-- Candidate Filter -->
-<div class="candidate-filter">
-    <a href="?filter=" class="filter-tab {% if not selected_filter and not position_filter %}active{% endif %}">All Candidates</a>
-    
-    {% for position in positions %}
-    <a href="?position={{ position.id }}" class="filter-tab {% if position_filter == position.id|stringformat:'s' %}active{% endif %}">
-        {{ position.title }} ({{ position.candidate_count }})
-    </a>
-    {% endfor %}
-    
-    <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Search candidates..." 
-               value="{{ search_query }}" onkeyup="if(event.keyCode==13) window.location='?search='+this.value">
-    </div>
-</div>
-
-<!-- Featured Candidate -->
-{% if featured_candidate %}
-<div class="featured-candidate">
-    <div class="featured-image">
-        <img src="{{ featured_candidate.image.url|default:'https://via.placeholder.com/800x400' }}" alt="{{ featured_candidate.user.get_full_name }}">
-        {% if featured_candidate.party %}
-        <div class="featured-party">{{ featured_candidate.party }}</div>
-        {% endif %}
-    </div>
-    <div class="featured-content">
-        <span class="featured-tag">Featured Candidate</span>
-        <h2 class="featured-name">{{ featured_candidate.user.get_full_name }}</h2>
-        <h3 class="featured-position">Candidate for {{ featured_candidate.position.title }}</h3>
-        <div class="featured-course">
-            <i class="fas fa-graduation-cap"></i>
-            <span>{{ featured_candidate.course_year }}</span>
-        </div>
-        <p class="featured-bio">
-            {{ featured_candidate.bio|truncatewords:50 }}
-        </p>
-        <div class="featured-stats">
-            <div class="featured-stat">
-                <div class="featured-stat-number">{{ featured_candidate.votes_count }}</div>
-                <div class="featured-stat-label">Votes</div>
-            </div>
-            <div class="featured-stat">
-                <div class="featured-stat-number">{{ featured_candidate.approval_rating }}%</div>
-                <div class="featured-stat-label">Approval</div>
-            </div>
-            <div class="featured-stat">
-                <div class="featured-stat-number">{{ featured_candidate.initiatives_count }}</div>
-                <div class="featured-stat-label">Initiatives</div>
-            </div>
-        </div>
-        <div class="candidate-actions">
-            <a href="{% url 'vote' candidate_id=featured_candidate.id %}" class="action-btn btn-primary">
-                <i class="fas fa-vote-yea"></i> Vote Now
-            </a>
-            <a href="{% url 'candidate_detail' candidate_id=featured_candidate.id %}" class="action-btn btn-outline">
-                <i class="fas fa-file-alt"></i> View Manifesto
-            </a>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<!-- Candidates Grid -->
-<div class="candidates-grid">
-    {% if candidates %}
-        {% for candidate in candidates %}
-        <div class="candidate-card">
-            <div class="candidate-banner">
-                {% if candidate.party %}
-                <div class="candidate-party">{{ candidate.party }}</div>
-                {% endif %}
-                <img src="{{ candidate.image.url|default:'https://via.placeholder.com/100' }}" alt="{{ candidate.user.get_full_name }}" class="candidate-avatar">
-            </div>
-            <div class="candidate-content">
-                <h3 class="candidate-name">{{ candidate.user.get_full_name }}</h3>
-                <div class="candidate-position">{{ candidate.position.title }}</div>
-                <div class="candidate-course">{{ candidate.course_year }}</div>
-                <p class="candidate-bio">
-                    {{ candidate.bio|truncatewords:20 }}
-                </p>
-                <div class="candidate-stats">
-                    <div class="stat-item">
-                        <div class="stat-number">{{ candidate.votes_count }}</div>
-                        <div class="stat-label">Votes</div>
+<div class="message-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">
+                <i class="message-icon fas 
+                    {% if message.tags == 'success' %}fa-check-circle
+                    {% elif message.tags == 'error' %}fa-exclamation-circle
+                    {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                    {% else %}fa-info-circle{% endif %}">
+                </i>
+                <div class="message-content">
+                    <div class="message-title">
+                        {% if message.tags == 'success' %}Success!
+                        {% elif message.tags == 'error' %}Error
+                        {% elif message.tags == 'warning' %}Warning
+                        {% else %}Notice{% endif %}
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ candidate.approval_rating }}%</div>
-                        <div class="stat-label">Approval</div>
-                    </div>
+                    <div class="message-text">{{ message }}</div>
                 </div>
-                <div class="candidate-actions">
-                    <a href="{% url 'vote' candidate.id %}" class="action-btn btn-primary">
-                        <i class="fas fa-vote-yea"></i> Vote
-                    </a>
-                    <a href="{% url 'candidate_detail' candidate_id=candidate.id %}" class="action-btn btn-outline">
-                        <i class="fas fa-eye"></i> View
-                    </a>
-                </div>
+                <button class="message-close">&times;</button>
             </div>
-        </div>
         {% endfor %}
-    {% else %}
-        <div class="no-candidates" style="grid-column: 1 / -1;">
-            <i class="fas fa-user-slash"></i>
-            <h3>No Candidates Found</h3>
-            <p>There are no candidates matching your search criteria.</p>
-            <a href="?" class="action-btn btn-primary">
-                <i class="fas fa-undo"></i> Reset Filters
-            </a>
-        </div>
     {% endif %}
 </div>
 
-<!-- Pagination -->
-{% if candidates.has_other_pages %}
-<ul class="pagination">
-    {% if candidates.has_previous %}
-    <li class="page-item">
-        <a href="?page={{ candidates.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">
-            <i class="fas fa-chevron-left"></i>
-        </a>
-    </li>
-    {% else %}
-    <li class="page-item">
-        <span class="page-link disabled"><i class="fas fa-chevron-left"></i></span>
-    </li>
-    {% endif %}
+<div class="candidates-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Meet Your Candidates</h1>
+        <p>Get to know the individuals running in the {{ active_election.title }} election</p>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="filter-controls">
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" placeholder="Search candidates..." 
+                   value="{{ search_query }}" 
+                   onkeyup="if(event.keyCode==13) window.location='?search='+this.value">
+        </div>
+        
+        <div class="position-filter">
+            <a href="?" class="position-btn {% if not position_filter %}active{% endif %}">All Positions</a>
+            {% for position in positions %}
+            <a href="?position={{ position.id }}" class="position-btn {% if position_filter == position.id|stringformat:'s' %}active{% endif %}">
+                {{ position.title }} ({{ position.candidate_count }})
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Group Candidates by Position -->
+    {% regroup candidates by position as position_groups %}
     
-    {% for i in candidates.paginator.page_range %}
-        {% if candidates.number == i %}
-        <li class="page-item">
-            <span class="page-link active">{{ i }}</span>
-        </li>
-        {% else %}
-        <li class="page-item">
-            <a href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">{{ i }}</a>
-        </li>
-        {% endif %}
+    {% for position_group in position_groups %}
+    <div class="position-section {% if 'president' in position_group.grouper.title|lower %}presidential-section{% endif %}">
+        <div class="section-header">
+            <h2 class="section-title">
+                {% if 'president' in position_group.grouper.title|lower %}
+                    <i class="fas fa-crown"></i>
+                {% else %}
+                    <i class="fas fa-user-tie"></i>
+                {% endif %}
+                {{ position_group.grouper.title }}
+            </h2>
+            <span class="section-count">{{ position_group.list|length }} Candidate{{ position_group.list|pluralize }}</span>
+        </div>
+        
+        <div class="candidates-grid">
+            {% for candidate in position_group.list %}
+            <div class="candidate-card">
+                <div class="candidate-banner">
+                    {% if candidate.party %}
+                    <div class="candidate-party">{{ candidate.party }}</div>
+                    {% endif %}
+                    <img src="{{ candidate.image.url|default:'/static/images/default_candidate.jpg' }}" 
+                         alt="{{ candidate.user.get_full_name }}" 
+                         class="candidate-avatar"
+                         onerror="this.src='/static/images/default_candidate.jpg'">
+                </div>
+                <div class="candidate-info">
+                    <h3 class="candidate-name">{{ candidate.user.get_full_name }}</h3>
+                    <div class="candidate-position">{{ candidate.position.title }}</div>
+                    <div class="candidate-course">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>{{ candidate.course_year }}</span>
+                    </div>
+                    <p class="candidate-bio">
+                        {{ candidate.bio|truncatewords:25 }}
+                    </p>
+                    <div class="candidate-stats">
+                        <div class="candidate-stat">
+                            <div class="stat-value">{{ candidate.votes_count }}</div>
+                            <div class="stat-label">Votes</div>
+                        </div>
+                        <div class="candidate-stat">
+                            <div class="stat-value">{{ candidate.approval_rating|floatformat:1 }}%</div>
+                            <div class="stat-label">Approval</div>
+                        </div>
+                    </div>
+                    <div class="candidate-actions">
+                        {% if request.user.is_authenticated and request.user.voter.is_verified %}
+                            <a href="{% url 'vote' candidate.id %}" class="candidate-btn btn-vote">
+                                <i class="fas fa-vote-yea"></i> Vote
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'candidate_detail' candidate.id %}" class="candidate-btn btn-details">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-user-slash"></i>
+        <h3>No Candidates Found</h3>
+        <p>There are currently no candidates matching your search criteria. Try adjusting your filters or check back later.</p>
+        <a href="?" class="candidate-btn btn-vote">
+            <i class="fas fa-sync-alt"></i> Reset Filters
+        </a>
+    </div>
     {% endfor %}
-    
-    {% if candidates.has_next %}
-    <li class="page-item">
-        <a href="?page={{ candidates.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">
-            <i class="fas fa-chevron-right"></i>
-        </a>
-    </li>
-    {% else %}
-    <li class="page-item">
-        <span class="page-link disabled"><i class="fas fa-chevron-right"></i></span>
-    </li>
-    {% endif %}
-</ul>
-{% endif %}
+</div>
 
 <script>
-    // Simple search functionality
-    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+    // Search functionality
+    document.querySelector('.search-box input').addEventListener('keyup', function(e) {
         if (e.keyCode === 13) {
             const searchValue = this.value.trim();
             const urlParams = new URLSearchParams(window.location.search);
@@ -634,9 +620,14 @@
                 urlParams.delete('search');
             }
             
+            // Reset to first page when searching
+            urlParams.delete('page');
+            
             window.location.search = urlParams.toString();
         }
     });
+
+    // Position filter functionality is handled by links
 </script>
 
 {% endblock %}

@@ -458,8 +458,134 @@
             gap: 15px;
             margin-top: 2rem;
         }
+
+
+                /* Enhanced Message System */
+                .message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .message-alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(120%);
+            animation: slideIn 0.5s forwards, fadeOut 0.5s forwards 4.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-alert::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            animation: progressBar 5s linear forwards;
+        }
+
+        .message-alert.success {
+            background-color: #28A745;
+            color: white;
+            border-left: 4px solid #1e7e34;
+        }
+
+        .message-alert.error {
+            background-color: #E74C3C;
+            color: white;
+            border-left: 4px solid #c0392b;
+        }
+
+        .message-alert.warning {
+            background-color: #FFA500;
+            color: white;
+            border-left: 4px solid #cc8400;
+        }
+
+        .message-alert.info {
+            background-color: #17A2B8;
+            color: white;
+            border-left: 4px solid #117a8b;
+        }
+
+        .message-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .message-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .message-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
 </style>
 
+<div class="message-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">
+                <i class="message-icon fas 
+                    {% if message.tags == 'success' %}fa-check-circle
+                    {% elif message.tags == 'error' %}fa-exclamation-circle
+                    {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                    {% else %}fa-info-circle{% endif %}">
+                </i>
+                <div class="message-content">
+                    <div class="message-title">
+                        {% if message.tags == 'success' %}Success!
+                        {% elif message.tags == 'error' %}Error
+                        {% elif message.tags == 'warning' %}Warning
+                        {% else %}Notice{% endif %}
+                    </div>
+                    <div class="message-text">{{ message }}</div>
+                </div>
+                <button class="message-close">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
 
 <!-- Voting Header -->
 <section class="voting-header">
@@ -484,11 +610,11 @@
     </div>
 </section>
 
-<form method="POST" id="votingForm">
+<form method="POST" id="votingForm" action="{% url 'vote' %}">
     {% csrf_token %}
     
     {% for position in positions %}
-    <div class="position-section">
+    <div class="position-section" id="position-{{ position.id }}">
         <div class="position-header">
             <h2 class="position-title">{{ position.title }}</h2>
             <span class="badge" style="background: {% if position.is_required %}var(--primary-color){% else %}#666{% endif %}; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem;">
@@ -498,12 +624,19 @@
         
         <p class="position-instructions">
             {{ position.description }}
+            {% if position.is_required %}<span class="text-danger">* You must select one option</span>{% endif %}
         </p>
         
         <div class="candidates-grid">
-            {% for candidate in position.candidate_set.all %}
-            <label class="candidate-card">
-                <input type="radio" name="position_{{ position.id }}" value="{{ candidate.id }}" style="display: none;">
+            {% for candidate in position.candidates.all %}
+            <label class="candidate-card {% if position.is_required %}required-position{% endif %}">
+                <input type="radio" 
+                       name="position_{{ position.id }}" 
+                       value="{{ candidate.id }}" 
+                       class="position-radio" 
+                       data-position="{{ position.id }}"
+                       {% if position.is_required %}required{% endif %}
+                       style="display: none;">
                 <div class="candidate-info">
                     <img src="{{ candidate.image.url|default:'https://via.placeholder.com/80' }}" alt="Candidate" class="candidate-avatar">
                     <div class="candidate-details">
@@ -525,9 +658,15 @@
             </label>
             {% endfor %}
             
-            {% if not position.is_required %}
+            <!-- Abstain option -->
             <label class="candidate-card">
-                <input type="radio" name="position_{{ position.id }}" value="abstain" style="display: none;">
+                <input type="radio" 
+                       name="position_{{ position.id }}" 
+                       value="abstain" 
+                       class="position-radio" 
+                       data-position="{{ position.id }}"
+                       {% if position.is_required %}required{% endif %}
+                       style="display: none;">
                 <div class="candidate-info">
                     <div style="width: 80px; height: 80px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-ban" style="font-size: 1.5rem; color: #666;"></i>
@@ -542,7 +681,6 @@
                     Select this option if you choose not to vote for any candidate in this category.
                 </p>
             </label>
-            {% endif %}
         </div>
     </div>
     {% endfor %}
@@ -552,41 +690,124 @@
         <button type="button" class="nav-btn btn-outline" onclick="saveProgress()">
             <i class="fas fa-save"></i> Save Progress
         </button>
-        <button type="button" class="nav-btn btn-primary" onclick="verifyVotes()">
-            Review Votes <i class="fas fa-arrow-right"></i>
+        <button type="submit" class="nav-btn btn-primary" id="submitVotesBtn">
+            Submit Votes <i class="fas fa-check-circle"></i>
         </button>
     </div>
 </form>
 
-<!-- All your modal templates remain the same, just update the JavaScript to handle form submission -->
-<script>
-    // Your existing JavaScript with these additions:
-    
-    function verifyVotes() {
-        // Update review sections with selected candidates
-        {% for position in positions %}
-        const presidentRadio = document.querySelector('input[name="position_{{ position.id }}"]:checked');
-        if (presidentRadio) {
-            if (presidentRadio.value === 'abstain') {
-                document.getElementById('review-{{ position.title|slugify }}').textContent = 'Abstained';
-            } else {
-                const selectedCandidate = presidentRadio.closest('.candidate-card');
-                const name = selectedCandidate.querySelector('.candidate-name').textContent;
-                document.getElementById('review-{{ position.title|slugify }}').textContent = name;
-            }
-        }
-        {% endfor %}
+<!-- Verification Modal -->
+<div class="modal-overlay" id="verificationModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="document.getElementById('verificationModal').classList.remove('active')">
+            &times;
+        </button>
+        <div class="modal-header">
+            <h3 class="modal-title">Review Your Votes</h3>
+            <p class="modal-subtitle">Please confirm your selections before submitting</p>
+        </div>
         
-        document.getElementById('verificationModal').classList.add('active');
-    }
+        <div class="receipt-votes">
+            {% for position in positions %}
+            <div class="receipt-vote">
+                <div class="receipt-label">{{ position.title }}</div>
+                <div class="receipt-value" id="review-{{ position.id }}">Not selected</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="receipt-actions">
+            <button class="nav-btn btn-outline" onclick="document.getElementById('verificationModal').classList.remove('active')">
+                <i class="fas fa-edit"></i> Make Changes
+            </button>
+            <button class="nav-btn btn-primary" onclick="document.getElementById('votingForm').submit()">
+                <i class="fas fa-check-circle"></i> Confirm Votes
+            </button>
+        </div>
+    </div>
+</div>
 
-    function submitVotes() {
-        document.getElementById('votingForm').submit();
+<script>
+    // Handle radio button selection
+    document.querySelectorAll('.position-radio').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove selected class from all cards in this position
+            const positionId = this.dataset.position;
+            document.querySelectorAll(`#position-${positionId} .candidate-card`).forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to current card
+            if (this.checked) {
+                this.closest('.candidate-card').classList.add('selected');
+            }
+            
+            // Update review section
+            updateReviewSection(positionId);
+        });
+    });
+    
+    // Update review section with selected candidates
+    function updateReviewSection(positionId) {
+        const radio = document.querySelector(`input[name="position_${positionId}"]:checked`);
+        const reviewElement = document.getElementById(`review-${positionId}`);
+        
+        if (radio) {
+            if (radio.value === 'abstain') {
+                reviewElement.textContent = 'Abstained';
+                reviewElement.style.color = '#666';
+            } else {
+                const selectedCandidate = radio.closest('.candidate-card');
+                const name = selectedCandidate.querySelector('.candidate-name').textContent;
+                reviewElement.textContent = name;
+                reviewElement.style.color = 'var(--primary-color)';
+            }
+        } else {
+            reviewElement.textContent = 'Not selected';
+            reviewElement.style.color = '#ff0000';
+        }
     }
-
-    function saveProgress() {
-        // Implement local storage saving if needed
-        alert('Progress saved locally (implementation needed)');
+    
+    // Verify votes before submission
+    document.getElementById('votingForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Check all required positions
+        document.querySelectorAll('.position-section').forEach(section => {
+            const positionId = section.id.split('-')[1];
+            const radio = document.querySelector(`input[name="position_${positionId}"]:checked`);
+            
+            if (!radio && section.querySelector('.required-position')) {
+                isValid = false;
+                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                section.style.boxShadow = '0 0 0 3px rgba(255, 0, 0, 0.2)';
+                setTimeout(() => {
+                    section.style.boxShadow = 'none';
+                }, 2000);
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please select a candidate for all required positions before submitting.');
+        } else {
+            // Show verification modal instead of submitting directly
+            e.preventDefault();
+            document.getElementById('verificationModal').classList.add('active');
+        }
+    });
+    
+    // Initialize review sections
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for position in positions %}
+        updateReviewSection('{{ position.id }}');
+        {% endfor %}
+    });
+    
+    // Your existing showManifesto function remains the same
+    function showManifesto(event, name, party, position, manifesto) {
+        event.stopPropagation();
+        // ... existing implementation ...
     }
 </script>
 

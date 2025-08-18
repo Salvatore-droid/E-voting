@@ -255,7 +255,30 @@
 </style>
 
 
-
+<div class="message-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">
+                <i class="message-icon fas 
+                    {% if message.tags == 'success' %}fa-check-circle
+                    {% elif message.tags == 'error' %}fa-exclamation-circle
+                    {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                    {% else %}fa-info-circle{% endif %}">
+                </i>
+                <div class="message-content">
+                    <div class="message-title">
+                        {% if message.tags == 'success' %}Success!
+                        {% elif message.tags == 'error' %}Error
+                        {% elif message.tags == 'warning' %}Warning
+                        {% else %}Notice{% endif %}
+                    </div>
+                    <div class="message-text">{{ message }}</div>
+                </div>
+                <button class="message-close">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
 <!-- Hero Section -->
 <section class="hero">
     <div class="hero-content">

@@ -1,9 +1,9 @@
 {% extends 'base/base.html' %}
 {% block content %}
-
+{% load static %}
 <style>
-    /* Page Header */
-    .page-header {
+     /* Page Header */
+     .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -433,20 +433,160 @@
             box-shadow: 0 5px 10px rgba(0, 51, 102, 0.2);
         }
 
+
+                /* Enhanced Message System */
+                .message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .message-alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(120%);
+            animation: slideIn 0.5s forwards, fadeOut 0.5s forwards 4.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-alert::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            animation: progressBar 5s linear forwards;
+        }
+
+        .message-alert.success {
+            background-color: #28A745;
+            color: white;
+            border-left: 4px solid #1e7e34;
+        }
+
+        .message-alert.error {
+            background-color: #E74C3C;
+            color: white;
+            border-left: 4px solid #c0392b;
+        }
+
+        .message-alert.warning {
+            background-color: #FFA500;
+            color: white;
+            border-left: 4px solid #cc8400;
+        }
+
+        .message-alert.info {
+            background-color: #17A2B8;
+            color: white;
+            border-left: 4px solid #117a8b;
+        }
+
+        .message-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .message-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .message-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+
 </style>
 
 
- <!-- Page Header -->
- <div class="page-header">
+<div class="message-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message-alert {{ message.tags }}">
+                <i class="message-icon fas 
+                    {% if message.tags == 'success' %}fa-check-circle
+                    {% elif message.tags == 'error' %}fa-exclamation-circle
+                    {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                    {% else %}fa-info-circle{% endif %}">
+                </i>
+                <div class="message-content">
+                    <div class="message-title">
+                        {% if message.tags == 'success' %}Success!
+                        {% elif message.tags == 'error' %}Error
+                        {% elif message.tags == 'warning' %}Warning
+                        {% else %}Notice{% endif %}
+                    </div>
+                    <div class="message-text">{{ message }}</div>
+                </div>
+                <button class="message-close">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+
+<!-- Page Header -->
+<div class="page-header">
     <h1><i class="fas fa-poll"></i> Election Results</h1>
     <div class="election-selector">
-        <button class="election-dropdown">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Student Union Elections 2023</span>
-            <i class="fas fa-chevron-down"></i>
-        </button>
+        <form method="post">
+            {% csrf_token %}
+            <select name="election_id" onchange="this.form.submit()" class="election-dropdown">
+                <option value="">Select Election</option>
+                {% for election in elections %}
+                <option value="{{ election.id }}" {% if election.id == election.id %}selected{% endif %}>
+                    {{ election.title }} - {{ election.end_date|date:"Y" }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
     </div>
 </div>
+
+{% if no_elections %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> No completed elections available yet.
+</div>
+{% else %}
 
 <!-- Results Summary -->
 <div class="results-summary">
@@ -454,28 +594,28 @@
         <div class="summary-icon">
             <i class="fas fa-users"></i>
         </div>
-        <div class="summary-number">5,248</div>
+        <div class="summary-number">{{ total_voters }}</div>
         <div class="summary-label">Total Voters</div>
     </div>
     <div class="summary-card">
         <div class="summary-icon">
             <i class="fas fa-vote-yea"></i>
         </div>
-        <div class="summary-number">4,567</div>
+        <div class="summary-number">{{ votes_cast }}</div>
         <div class="summary-label">Votes Cast</div>
     </div>
     <div class="summary-card">
         <div class="summary-icon">
             <i class="fas fa-percentage"></i>
         </div>
-        <div class="summary-number">87%</div>
+        <div class="summary-number">{{ voter_turnout }}%</div>
         <div class="summary-label">Voter Turnout</div>
     </div>
     <div class="summary-card">
         <div class="summary-icon">
             <i class="fas fa-user-graduate"></i>
         </div>
-        <div class="summary-number">24</div>
+        <div class="summary-number">{{ total_candidates }}</div>
         <div class="summary-label">Candidates</div>
     </div>
 </div>
@@ -483,117 +623,45 @@
 <!-- Results Tabs -->
 <div class="results-tabs">
     <div class="results-tab active">All Positions</div>
-    <div class="results-tab">President</div>
-    <div class="results-tab">Secretary General</div>
-    <div class="results-tab">Treasurer</div>
-    <div class="results-tab">Faculty Reps</div>
+    {% for position in positions %}
+    <div class="results-tab">{{ position.title }}</div>
+    {% endfor %}
 </div>
 
 <!-- Position Results -->
-<div class="position-results">
+{% for position in positions %}
+<div class="position-results" id="position-{{ position.id }}">
     <div class="position-header">
-        <h2 class="position-title">President</h2>
-        <div class="position-votes">4,567 votes cast</div>
+        <h2 class="position-title">{{ position.title }}</h2>
+        <div class="position-votes">{{ position.total_votes }} votes cast</div>
     </div>
     <div class="candidates-list">
-        <!-- Winner -->
-        <div class="candidate-row winner">
-            <div class="candidate-rank">1</div>
+        {% for candidate in position.candidates_list %}
+        <div class="candidate-row {% if candidate.is_winner %}winner{% endif %}">
+            <div class="candidate-rank">{{ candidate.rank }}</div>
             <div class="candidate-info">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Candidate" class="candidate-avatar">
+                <img src="{% if candidate.image %}{{ candidate.image.url }}{% else %}{% static 'images/default.jpg' %}{% endif %}" 
+                     alt="{{ candidate.user.get_full_name }}" class="candidate-avatar">
                 <div class="candidate-details">
-                    <div class="candidate-name">John Mwangi</div>
-                    <div class="candidate-party">Progressive Alliance</div>
+                    <div class="candidate-name">{{ candidate.user.get_full_name }}</div>
+                    <div class="candidate-party">{{ candidate.user.department|default:"Independent" }}</div>
                     <div class="vote-bar-container">
-                        <div class="vote-bar" style="width: 62%;"></div>
+                        <div class="vote-bar" style="width: {{ candidate.percentage|floatformat:0 }}%;"></div>
                     </div>
-                    <div class="vote-percentage">62% of votes</div>
+                    <div class="vote-percentage">{{ candidate.percentage|floatformat:1 }}% of votes</div>
                 </div>
             </div>
-            <div class="vote-count">2,831 votes</div>
+            <div class="vote-count">{{ candidate.vote_count }} votes</div>
+            {% if candidate.is_winner %}
             <div class="winner-badge">
                 <i class="fas fa-trophy"></i> Winner
             </div>
+            {% endif %}
         </div>
-        <!-- Runner-up -->
-        <div class="candidate-row">
-            <div class="candidate-rank">2</div>
-            <div class="candidate-info">
-                <img src="https://randomuser.me/api/portraits/women/45.jpg" alt="Candidate" class="candidate-avatar">
-                <div class="candidate-details">
-                    <div class="candidate-name">Grace Wanjiku</div>
-                    <div class="candidate-party">Students First</div>
-                    <div class="vote-bar-container">
-                        <div class="vote-bar" style="width: 35%;"></div>
-                    </div>
-                    <div class="vote-percentage">35% of votes</div>
-                </div>
-            </div>
-            <div class="vote-count">1,598 votes</div>
-        </div>
-        <!-- Third place -->
-        <div class="candidate-row">
-            <div class="candidate-rank">3</div>
-            <div class="candidate-info">
-                <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Candidate" class="candidate-avatar">
-                <div class="candidate-details">
-                    <div class="candidate-name">David Ochieng</div>
-                    <div class="candidate-party">Independent</div>
-                    <div class="vote-bar-container">
-                        <div class="vote-bar" style="width: 3%;"></div>
-                    </div>
-                    <div class="vote-percentage">3% of votes</div>
-                </div>
-            </div>
-            <div class="vote-count">138 votes</div>
-        </div>
+        {% endfor %}
     </div>
 </div>
-
-<!-- Another Position -->
-<div class="position-results">
-    <div class="position-header">
-        <h2 class="position-title">Secretary General</h2>
-        <div class="position-votes">4,567 votes cast</div>
-    </div>
-    <div class="candidates-list">
-        <!-- Winner -->
-        <div class="candidate-row winner">
-            <div class="candidate-rank">1</div>
-            <div class="candidate-info">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Candidate" class="candidate-avatar">
-                <div class="candidate-details">
-                    <div class="candidate-name">Sarah Atieno</div>
-                    <div class="candidate-party">Students First</div>
-                    <div class="vote-bar-container">
-                        <div class="vote-bar" style="width: 58%;"></div>
-                    </div>
-                    <div class="vote-percentage">58% of votes</div>
-                </div>
-            </div>
-            <div class="vote-count">2,649 votes</div>
-            <div class="winner-badge">
-                <i class="fas fa-trophy"></i> Winner
-            </div>
-        </div>
-        <!-- Runner-up -->
-        <div class="candidate-row">
-            <div class="candidate-rank">2</div>
-            <div class="candidate-info">
-                <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="Candidate" class="candidate-avatar">
-                <div class="candidate-details">
-                    <div class="candidate-name">Brian Otieno</div>
-                    <div class="candidate-party">Progressive Alliance</div>
-                    <div class="vote-bar-container">
-                        <div class="vote-bar" style="width: 42%;"></div>
-                    </div>
-                    <div class="vote-percentage">42% of votes</div>
-                </div>
-            </div>
-            <div class="vote-count">1,918 votes</div>
-        </div>
-    </div>
-</div>
+{% endfor %}
 
 <!-- Charts Section -->
 <div class="charts-section">
@@ -604,15 +672,13 @@
         <div class="chart-container">
             <h3 class="chart-title">Voter Turnout by Faculty</h3>
             <div class="chart-placeholder">
-                <i class="fas fa-chart-pie" style="font-size: 2rem; color: #ccc;"></i>
-                <span style="margin-left: 10px;">Turnout Chart</span>
+                <canvas id="facultyChart" height="250"></canvas>
             </div>
         </div>
         <div class="chart-container">
             <h3 class="chart-title">Voting Timeline</h3>
             <div class="chart-placeholder">
-                <i class="fas fa-chart-line" style="font-size: 2rem; color: #ccc;"></i>
-                <span style="margin-left: 10px;">Timeline Chart</span>
+                <canvas id="timelineChart" height="250"></canvas>
             </div>
         </div>
     </div>
@@ -626,17 +692,17 @@
     <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
-            <div class="timeline-date">May 1, 2023</div>
+            <div class="timeline-date">{{ election.start_date|date:"F j, Y" }}</div>
             <div class="timeline-event">Nominations Open</div>
             <div class="timeline-description">
-                The nomination period for candidates began with 42 students submitting their applications.
+                The nomination period for candidates began.
             </div>
         </div>
     </div>
     <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
-            <div class="timeline-date">May 8, 2023</div>
+            <div class="timeline-date">{{ election.start_date|date:"F j, Y" }}</div>
             <div class="timeline-event">Campaign Period Starts</div>
             <div class="timeline-description">
                 Approved candidates began their campaigns with manifesto presentations and debates.
@@ -646,17 +712,17 @@
     <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
-            <div class="timeline-date">May 15-17, 2023</div>
+            <div class="timeline-date">{{ election.start_date|date:"F j, Y" }} to {{ election.end_date|date:"F j, Y" }}</div>
             <div class="timeline-event">Voting Period</div>
             <div class="timeline-description">
-                Students cast their votes electronically with a record 87% turnout.
+                Students cast their votes electronically with a {{ voter_turnout }}% turnout.
             </div>
         </div>
     </div>
     <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
-            <div class="timeline-date">May 18, 2023</div>
+            <div class="timeline-date">{{ election.end_date|date:"F j, Y" }}</div>
             <div class="timeline-event">Results Announcement</div>
             <div class="timeline-description">
                 Final results were verified and announced by the election committee.
@@ -679,7 +745,7 @@
             <p class="download-description">
                 Complete election results in PDF format for printing and archiving.
             </p>
-            <a href="#" class="download-btn">Download</a>
+            <a href="{% url 'download_results' election.id 'pdf' %}" class="download-btn">Download</a>
         </div>
         <div class="download-card">
             <div class="download-icon">
@@ -689,7 +755,7 @@
             <p class="download-description">
                 Raw voting data in Excel format for further analysis.
             </p>
-            <a href="#" class="download-btn">Download</a>
+            <a href="{% url 'download_results' election.id 'excel' %}" class="download-btn">Download</a>
         </div>
         <div class="download-card">
             <div class="download-icon">
@@ -699,11 +765,105 @@
             <p class="download-description">
                 Key findings and analysis of the election results.
             </p>
-            <a href="#" class="download-btn">Download</a>
+            <a href="{% url 'download_results' election.id 'summary' %}" class="download-btn">Download</a>
         </div>
     </div>
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Faculty Chart
+    const facultyCtx = document.getElementById('facultyChart').getContext('2d');
+    const facultyChart = new Chart(facultyCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Science', 'Arts', 'Business', 'Engineering', 'Education'],
+            datasets: [{
+                label: 'Voter Turnout (%)',
+                data: [85, 78, 82, 88, 75],
+                backgroundColor: [
+                    'rgba(0, 51, 102, 0.7)',
+                    'rgba(255, 215, 0, 0.7)',
+                    'rgba(0, 51, 102, 0.5)',
+                    'rgba(255, 215, 0, 0.5)',
+                    'rgba(0, 51, 102, 0.3)'
+                ],
+                borderColor: [
+                    'rgba(0, 51, 102, 1)',
+                    'rgba(255, 215, 0, 1)',
+                    'rgba(0, 51, 102, 1)',
+                    'rgba(255, 215, 0, 1)',
+                    'rgba(0, 51, 102, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
 
+    // Timeline Chart
+    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    const timelineChart = new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+            labels: ['Day 1', 'Day 2', 'Day 3'],
+            datasets: [{
+                label: 'Votes Cast',
+                data: [1200, 1900, 1500],
+                backgroundColor: 'rgba(0, 51, 102, 0.2)',
+                borderColor: 'rgba(0, 51, 102, 1)',
+                borderWidth: 2,
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Tab functionality
+    document.querySelectorAll('.results-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs
+            document.querySelectorAll('.results-tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            tab.classList.add('active');
+            
+            // Show/hide position results
+            if (tab.textContent === 'All Positions') {
+                document.querySelectorAll('.position-results').forEach(pos => {
+                    pos.style.display = 'block';
+                });
+            } else {
+                document.querySelectorAll('.position-results').forEach(pos => {
+                    pos.style.display = 'none';
+                });
+                const positionId = tab.textContent.replace(/\s+/g, '-').toLowerCase();
+                document.getElementById(`position-${positionId}`).style.display = 'block';
+            }
+        });
+    });
+</script>
+
+{% endif %}
 {% endblock %}

@@ -1,0 +1,25 @@
+<!-- confirm_delete.html -->
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Confirm Account Deletion</h3>
+                    <p class="text-center mb-4">Are you sure you want to permanently delete your account? This action cannot be undone.</p>
+                    
+                    <form method="POST" action="{% url 'delete_account' %}">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'settings' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Delete My Account</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

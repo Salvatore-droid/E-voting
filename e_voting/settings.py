@@ -103,6 +103,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# AUTH_USER_MODEL = 'base.user'
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -139,6 +141,17 @@ MEDIA_URL = 'media/'
 
 # settings.py
 
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # e.g., smtp.gmail.com
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'geniusokwemba53@gmail.com'
+EMAIL_HOST_PASSWORD = 'vrowxbgarerjubed '
+
+
 JAZZMIN_SETTINGS = {
     # General Settings
     "site_title": "Rongo University Admin",
@@ -165,7 +178,7 @@ JAZZMIN_SETTINGS = {
     # Top Menu
     "topmenu_links": [
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "View Site", "url": "/", "new_window": True},
+        {"name": "View Site", "url": "/", "new_window": False},
         {"name": "Support", "url": "mailto:support@rongo.ac.ke", "new_window": True},
     ],
     

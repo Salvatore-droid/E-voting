@@ -49,6 +49,122 @@
             height: 70px;
         }
 
+        /* User Navigation Styles */
+.user-nav {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 20px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+.user-profile:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.profile-picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--secondary-color);
+}
+
+.profile-picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.username {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.user-profile i {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.user-profile.active i {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    min-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+    animation: fadeInUp 0.3s ease;
+    margin-top: 10px;
+}
+
+.user-profile.active .dropdown-menu {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    color: var(--dark-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    gap: 10px;
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+    color: var(--primary-color);
+}
+
+.dropdown-item:hover {
+    background: rgba(0, 51, 102, 0.05);
+    color: var(--primary-color);
+    padding-left: 20px;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #eee;
+    margin: 5px 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .username {
+        display: none;
+    }
+    
+    .user-profile i {
+        display: none;
+    }
+    
+    .user-profile {
+        padding: 5px;
+    }
+    
+    .dropdown-menu {
+        right: -50px;
+    }
+}
+
         .logo {
             display: flex;
             align-items: center;
@@ -79,6 +195,122 @@
             color: white;
             font-size: 1.5rem;
             cursor: pointer;
+        }
+
+
+
+        /* Enhanced Message System */
+        .message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .message-alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(120%);
+            animation: slideIn 0.5s forwards, fadeOut 0.5s forwards 4.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-alert::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            animation: progressBar 5s linear forwards;
+        }
+
+        .message-alert.success {
+            background-color: #28A745;
+            color: white;
+            border-left: 4px solid #1e7e34;
+        }
+
+        .message-alert.error {
+            background-color: #E74C3C;
+            color: white;
+            border-left: 4px solid #c0392b;
+        }
+
+        .message-alert.warning {
+            background-color: #FFA500;
+            color: white;
+            border-left: 4px solid #cc8400;
+        }
+
+        .message-alert.info {
+            background-color: #17A2B8;
+            color: white;
+            border-left: 4px solid #117a8b;
+        }
+
+        .message-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .message-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .message-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        @keyframes progressBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Form Error Messages */
+        .form-error {
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-error i {
+            font-size: 0.9rem;
         }
 
         /* Sidebar Styles */
@@ -327,11 +559,34 @@
                 <p>Campus Voting System</p>
             </div>
         </div>
+        
+        <div class="user-nav">
+            <div class="user-profile" id="userProfileDropdown">
+                <div class="profile-picture">
+                    <img src="{{ user.profile.get_profile_picture_url }}" alt="{{ request.user.get_full_name }}">
+                </div>
+                <span class="username">{{ request.user.get_full_name|default:request.user.username }}</span>
+                <i class="fas fa-chevron-down"></i>
+                
+                <div class="dropdown-menu" id="profileDropdownMenu">
+                    <a href="{% url 'settings' %}" class="dropdown-item">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                    <a href="{% url 'settings' %}" class="dropdown-item">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'logout_view' %}" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+        
         <button class="mobile-menu-btn" id="mobileMenuBtn">
             <i class="fas fa-bars"></i>
         </button>
     </header>
-
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <nav>
@@ -344,7 +599,7 @@
                     <i class="fas fa-vote-yea"></i>
                     <span>Current Elections</span>
                 </a>
-                <a href="{% url 'history' %}" class="sidebar-link">
+                <a href="{% url 'voting_history' %}" class="sidebar-link">
                     <i class="fas fa-history"></i>
                     <span>Voting History</span>
                 </a>
@@ -368,6 +623,11 @@
                     <i class="fas fa-question-circle"></i>
                     <span>Help & Support</span>
                 </a>
+                <a href="{% url 'logout_view' %}" class="sidebar-link">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Logout</span>
+                </a>
+                
             </div>
         </nav>
     </aside>

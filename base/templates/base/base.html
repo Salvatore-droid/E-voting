@@ -50,120 +50,121 @@
         }
 
         /* User Navigation Styles */
-.user-nav {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    margin-right: 20px;
-}
+        .user-nav {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            margin-right: 20px;
+        }
 
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-    cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 50px;
-    transition: all 0.3s ease;
-}
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
 
-.user-profile:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
 
-.profile-picture {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid var(--secondary-color);
-}
+        .profile-picture {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--secondary-color);
+        }
 
-.profile-picture img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+        .profile-picture img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-.username {
-    font-weight: 500;
-    font-size: 0.9rem;
-}
+        .username {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
 
-.user-profile i {
-    font-size: 0.8rem;
-    transition: transform 0.3s ease;
-}
+        .user-profile i {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
 
-.user-profile.active i {
-    transform: rotate(180deg);
-}
+        .user-profile.active i {
+            transform: rotate(180deg);
+        }
 
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    min-width: 200px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    display: none;
-    animation: fadeInUp 0.3s ease;
-    margin-top: 10px;
-}
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            min-width: 200px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+            animation: fadeInUp 0.3s ease;
+            margin-top: 10px;
+        }
 
-.user-profile.active .dropdown-menu {
-    display: block;
-}
+        .user-profile.active .dropdown-menu {
+            display: block;
+        }
 
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    color: var(--dark-color);
-    text-decoration: none;
-    transition: all 0.3s ease;
-    gap: 10px;
-}
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            color: var(--dark-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            gap: 10px;
+        }
 
-.dropdown-item i {
-    width: 20px;
-    text-align: center;
-    color: var(--primary-color);
-}
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+            color: var(--primary-color);
+        }
 
-.dropdown-item:hover {
-    background: rgba(0, 51, 102, 0.05);
-    color: var(--primary-color);
-    padding-left: 20px;
-}
+        .dropdown-item:hover {
+            background: rgba(0, 51, 102, 0.05);
+            color: var(--primary-color);
+            padding-left: 20px;
+        }
 
-.dropdown-divider {
-    height: 1px;
-    background: #eee;
-    margin: 5px 0;
-}
+        .dropdown-divider {
+            height: 1px;
+            background: #eee;
+            margin: 5px 0;
+        }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .username {
-        display: none;
-    }
-    
-    .user-profile i {
-        display: none;
-    }
-    
-    .user-profile {
-        padding: 5px;
-    }
-    
-    .dropdown-menu {
-        right: -50px;
-    }
-}
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .username {
+                display: none;
+            }
+            
+            .user-profile i {
+                display: block;
+            }
+            
+            .user-profile {
+                padding: 5px;
+            }
+            
+            .dropdown-menu {
+                right: 0;
+                width: 180px;
+            }
+        }
 
         .logo {
             display: flex;
@@ -196,8 +197,6 @@
             font-size: 1.5rem;
             cursor: pointer;
         }
-
-
 
         /* Enhanced Message System */
         .message-container {
@@ -389,7 +388,6 @@
             transition: margin-left var(--transition-speed) ease;
         }
 
-        
         /* Footer */
         .footer {
             background: var(--dark-color);
@@ -627,7 +625,6 @@
                     <i class="fas fa-sign-in-alt"></i>
                     <span>Logout</span>
                 </a>
-                
             </div>
         </nav>
     </aside>
@@ -652,10 +649,9 @@
     </main>
 
     <script>
-        // Updated Mobile Menu Toggle
+        // Mobile Menu Toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('mainContent');
 
         mobileMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -665,10 +661,9 @@
                 : '<i class="fas fa-bars"></i>';
         });
 
-        // Close sidebar when clicking outside (but not on links)
+        // Close sidebar when clicking outside
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 992 && sidebar.classList.contains('active')) {
-                // Check if click is outside sidebar and not on a sidebar link
                 if (!sidebar.contains(e.target) && !e.target.closest('.sidebar-link')) {
                     sidebar.classList.remove('active');
                     mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
@@ -676,11 +671,20 @@
             }
         });
 
-        // Prevent sidebar links from triggering the document click handler
-        document.querySelectorAll('.sidebar-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
+        // User Profile Dropdown Toggle
+        const userProfileDropdown = document.getElementById('userProfileDropdown');
+        const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+
+        userProfileDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userProfileDropdown.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userProfileDropdown.contains(e.target)) {
+                userProfileDropdown.classList.remove('active');
+            }
         });
 
         // Countdown Timer

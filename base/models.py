@@ -169,6 +169,10 @@ class Voter(models.Model):
     
     def __str__(self):
         return self.user.get_full_name()
+    
+    @classmethod
+    def get_total_voters(cls):
+        return cls.objects.filter(is_verified=True).count()
 
 class Vote(models.Model):
     VOTE_STATUS_CHOICES = [

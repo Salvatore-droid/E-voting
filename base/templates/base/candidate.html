@@ -1,4 +1,3 @@
-
 {% extends 'base/base.html' %}
 {% block content %}
 
@@ -348,6 +347,44 @@
         margin-right: auto;
     }
 
+    .percentage-container {
+        position: relative;
+        width: 100%;
+        height: 4px;
+        background-color: #f0f0f0;
+        border-radius: 2px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+
+    .percentage-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+        border-radius: 2px;
+        width: 0%;
+        transition: width 2s ease-in-out;
+    }
+
+    .percentage-text {
+        font-size: 0.8rem;
+        color: var(--primary-color);
+        margin-top: 0.3rem;
+        font-weight: 600;
+    }
+
+    .animate-percentage {
+        animation: countUp 2s ease-out forwards;
+    }
+
+    @keyframes countUp {
+        from {
+            width: 0%;
+        }
+        to {
+            width: var(--target-percentage);
+        }
+    }
+
     /* Responsive Adjustments */
     @media (max-width: 768px) {
         .candidates-grid {
@@ -572,12 +609,21 @@
                     </p>
                     <div class="candidate-stats">
                         <div class="candidate-stat">
-                            <div class="stat-value">{{ candidate.votes_count }}</div>
+                            <div class="stat-value">{{ candidate.vote_count }}</div>
                             <div class="stat-label">Votes</div>
                         </div>
                         <div class="candidate-stat">
-                            <div class="stat-value">{{ candidate.approval_rating|floatformat:1 }}%</div>
+                            <!-- Calculate the actual percentage -->
+                            <div class="stat-value percentage-display" data-percentage="{{ candidate.percentage|floatformat:2 }}">
+                                0%
+                            </div>
                             <div class="stat-label">Approval</div>
+                            
+                            <!-- Percentage visualization -->
+                            <div class="percentage-container">
+                                <div class="percentage-bar" style="--target-percentage: {{ candidate.percentage|floatformat:2 }}%"></div>
+                            </div>
+                            <div class="percentage-text">0% of total voters</div>
                         </div>
                     </div>
                     <div class="candidate-actions">
@@ -608,6 +654,40 @@
 </div>
 
 <script>
+    // Function to animate percentage counting
+    function animatePercentages() {
+        const percentageDisplays = document.querySelectorAll('.percentage-display');
+        const percentageBars = document.querySelectorAll('.percentage-bar');
+        const percentageTexts = document.querySelectorAll('.percentage-text');
+        
+        percentageDisplays.forEach((display, index) => {
+            const targetPercentage = parseFloat(display.getAttribute('data-percentage'));
+            const bar = percentageBars[index];
+            const text = percentageTexts[index];
+            
+            // Start the animation
+            bar.classList.add('animate-percentage');
+            
+            // Animate the text counting
+            let currentPercentage = 0;
+            const increment = targetPercentage / 100;
+            const duration = 2000; // 2 seconds
+            const interval = duration / targetPercentage;
+            
+            const counter = setInterval(() => {
+                currentPercentage += increment;
+                if (currentPercentage >= targetPercentage) {
+                    currentPercentage = targetPercentage;
+                    clearInterval(counter);
+                }
+                display.textContent = currentPercentage.toFixed(1) + '%';
+                text.textContent = currentPercentage.toFixed(1) + '% of total voters';
+            }, interval);
+        });
+    }
+    
+    // Run the animation when the page loads
+    document.addEventListener('DOMContentLoaded', animatePercentages);
     // Search functionality
     document.querySelector('.search-box input').addEventListener('keyup', function(e) {
         if (e.keyCode === 13) {

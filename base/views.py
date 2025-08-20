@@ -132,6 +132,7 @@ def vote(request):
     }
     return render(request, 'base/voting.html', context)
 
+# In views.py
 @login_required
 def candidate(request):
     active_election = Election.objects.filter(is_active=True).first()
@@ -160,17 +161,33 @@ def candidate(request):
             Q(manifesto__icontains=search_query)
         )
     
+    # Calculate total verified voters
+    total_voters = Voter.objects.filter(is_verified=True).count()
+    
+    # Annotate candidates with vote count and percentage
+    candidates = candidates.annotate(
+        vote_count=Count('votes')
+    )
+    
+    # Calculate percentage for each candidate
+    for candidate in candidates:
+        if total_voters > 0:
+            candidate.percentage = (candidate.vote_count / total_voters) * 100
+        else:
+            candidate.percentage = 0
+    
     positions = Position.objects.filter(election=active_election).order_by('order')
     positions = positions.annotate(candidate_count=Count('candidates'))
     
     context = {
         'active_election': active_election,
-        'candidates': candidates,  # Removed the featured_candidate exclusion
+        'candidates': candidates,
         'filters': filters,
         'positions': positions,
         'selected_filter': selected_filter,
         'position_filter': position_filter,
         'search_query': search_query,
+        'total_voters': total_voters,
     }
     return render(request, 'base/candidate.html', context)
 

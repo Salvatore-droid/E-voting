@@ -25,7 +25,6 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
         body {
             background-color: var(--light-color);
             color: var(--dark-color);
@@ -50,18 +49,19 @@
         }
 
         /* User Navigation Styles */
+        /* User Navigation Styles */
         .user-nav {
             display: flex;
             align-items: center;
             margin-left: auto;
             margin-right: 20px;
+            position: relative; /* This is key for absolute positioning of dropdown */
         }
 
         .user-profile {
             display: flex;
             align-items: center;
             gap: 10px;
-            position: relative;
             cursor: pointer;
             padding: 5px 10px;
             border-radius: 50px;
@@ -70,6 +70,32 @@
 
         .user-profile:hover {
             background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%; /* Position below the user-nav */
+            right: 0;
+            background: white;
+            min-width: 200px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1002;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        /* Show dropdown when user-nav has active class */
+        .user-nav.active .dropdown-menu {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .user-profile.active i {
+            transform: rotate(180deg);
         }
 
         .profile-picture {
@@ -100,22 +126,12 @@
             transform: rotate(180deg);
         }
 
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            min-width: 200px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            display: none;
-            animation: fadeInUp 0.3s ease;
-            margin-top: 10px;
-        }
+        
 
         .user-profile.active .dropdown-menu {
             display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .dropdown-item {
@@ -144,6 +160,18 @@
             height: 1px;
             background: #eee;
             margin: 5px 0;
+        }
+
+        /* Add these animations if not already present */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Responsive adjustments */
@@ -565,19 +593,20 @@
                 </div>
                 <span class="username">{{ request.user.get_full_name|default:request.user.username }}</span>
                 <i class="fas fa-chevron-down"></i>
-                
-                <div class="dropdown-menu" id="profileDropdownMenu">
-                    <a href="{% url 'settings' %}" class="dropdown-item">
-                        <i class="fas fa-user"></i> My Profile
-                    </a>
-                    <a href="{% url 'settings' %}" class="dropdown-item">
-                        <i class="fas fa-cog"></i> Settings
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a href="{% url 'logout_view' %}" class="dropdown-item">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </div>
+            </div>
+            
+            <!-- MOVE THE DROPDOWN MENU HERE (outside user-profile but inside user-nav) -->
+            <div class="dropdown-menu" id="profileDropdownMenu">
+                <a href="{% url 'settings' %}" class="dropdown-item">
+                    <i class="fas fa-user"></i> My Profile
+                </a>
+                <a href="{% url 'settings' %}" class="dropdown-item">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="{% url 'logout_view' %}" class="dropdown-item">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </div>
         </div>
         
@@ -652,7 +681,7 @@
         // Mobile Menu Toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
-
+    
         mobileMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             sidebar.classList.toggle('active');
@@ -660,58 +689,94 @@
                 ? '<i class="fas fa-times"></i>' 
                 : '<i class="fas fa-bars"></i>';
         });
+    
+        // User Profile Dropdown Toggle
+        // User Profile Dropdown Toggle - UPDATED
+        const userNav = document.querySelector('.user-nav');
+        const userProfileDropdown = document.getElementById('userProfileDropdown');
 
-        // Close sidebar when clicking outside
+        userProfileDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userNav.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside - UPDATED
         document.addEventListener('click', (e) => {
+            // Close dropdown if clicked outside
+            if (!userNav.contains(e.target)) {
+                userNav.classList.remove('active');
+            }
+            
+            // Close sidebar if clicked outside (on mobile)
             if (window.innerWidth <= 992 && sidebar.classList.contains('active')) {
-                if (!sidebar.contains(e.target) && !e.target.closest('.sidebar-link')) {
+                if (!sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
                     sidebar.classList.remove('active');
                     mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
                 }
             }
         });
 
-        // User Profile Dropdown Toggle
-        const userProfileDropdown = document.getElementById('userProfileDropdown');
-        const profileDropdownMenu = document.getElementById('profileDropdownMenu');
-
-        userProfileDropdown.addEventListener('click', (e) => {
+        // Prevent dropdown from closing when clicking inside dropdown menu
+        profileDropdownMenu.addEventListener('click', (e) => {
             e.stopPropagation();
-            userProfileDropdown.classList.toggle('active');
         });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!userProfileDropdown.contains(e.target)) {
-                userProfileDropdown.classList.remove('active');
-            }
-        });
-
-        // Countdown Timer
+    
+        // Countdown Timer (if needed on the page)
         function updateCountdown() {
-            const now = new Date();
-            const nextElection = new Date();
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
             
-            // Set the next election to be 7 days from now at 8:00 AM
-            nextElection.setDate(now.getDate() + 7);
-            nextElection.setHours(8, 0, 0, 0);
-            
-            const diff = nextElection - now;
-            
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            
-            document.getElementById('days').textContent = days.toString().padStart(2, '0');
-            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            // Only run if countdown elements exist
+            if (daysEl && hoursEl && minutesEl && secondsEl) {
+                const now = new Date();
+                const nextElection = new Date();
+                
+                // Set the next election to be 7 days from now at 8:00 AM
+                nextElection.setDate(now.getDate() + 7);
+                nextElection.setHours(8, 0, 0, 0);
+                
+                const diff = nextElection - now;
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                daysEl.textContent = days.toString().padStart(2, '0');
+                hoursEl.textContent = hours.toString().padStart(2, '0');
+                minutesEl.textContent = minutes.toString().padStart(2, '0');
+                secondsEl.textContent = seconds.toString().padStart(2, '0');
+            }
         }
         
-        // Update countdown every second
-        setInterval(updateCountdown, 1000);
-        updateCountdown(); // Initial call
+        // Initialize countdown if elements exist
+        if (document.getElementById('days')) {
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+    
+        // Enhanced message system functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close message alerts when clicking the close button
+            const closeButtons = document.querySelectorAll('.message-close');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.message-alert').style.display = 'none';
+                });
+            });
+            
+            // Auto-remove messages after animation completes
+            const messageAlerts = document.querySelectorAll('.message-alert');
+            messageAlerts.forEach(alert => {
+                alert.addEventListener('animationend', function(e) {
+                    if (e.animationName === 'fadeOut') {
+                        this.style.display = 'none';
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>

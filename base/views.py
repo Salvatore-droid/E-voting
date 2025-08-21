@@ -35,12 +35,19 @@ def dashboard(request):
     total_candidates = Candidate.objects.count()
     total_positions = Position.objects.count()
     
+    # Convert election date to ISO format for JavaScript
+    election_start_iso = election.start_date.isoformat() if election else None
+    election_end_iso = election.end_date.isoformat() if election else None
+    
     context = {
         'election': election,
+        'election_start_iso': election_start_iso,
+        'election_end_iso': election_end_iso,
         'total_voters': total_voters,
         'verified_voters': verified_voters,
         'total_candidates': total_candidates,
         'total_positions': total_positions,
+        'now_iso': now.isoformat(),  # Current server time
     }
     return render(request, 'base/dashboard.html', context)
 

@@ -385,13 +385,32 @@
             : '<i class="fas fa-bars"></i>';
     });
 
-
-    // Countdown Timer
+    // Countdown Timer - FIXED VERSION
     function updateCountdown() {
         {% if election %}
+            // Get server time and election time in UTC
             const electionDate = new Date("{{ election.start_date|date:'Y-m-d H:i:s' }}");
             const now = new Date();
             const diff = electionDate - now;
+            
+            // If election has already started or passed
+            if (diff <= 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                
+                // Update the message if election has started
+                const countdownSection = document.querySelector('.countdown-section h2');
+                if (countdownSection) {
+                    if (diff < 0) {
+                        countdownSection.textContent = "Election is Ongoing!";
+                    } else {
+                        countdownSection.textContent = "Election Starting Now!";
+                    }
+                }
+                return;
+            }
             
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -409,5 +428,4 @@
     setInterval(updateCountdown, 1000);
     updateCountdown(); // Initial call
 </script>
-
 {% endblock %}

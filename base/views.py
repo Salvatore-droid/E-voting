@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import Election, Position, Candidate, Voter, Vote, UserProfile
+from .models import *
 from django.db.models import Count
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -52,6 +52,33 @@ def dashboard(request):
     return render(request, 'base/dashboard.html', context)
 
 @login_required
+def select_school(request):
+    """View for users to select their school if not automatically detected"""
+    profile = request.user.profile
+    
+    # If school is already set, redirect to dashboard
+    if profile.school:
+        return redirect('dashboard')
+    
+    schools = School.objects.all()
+    
+    if request.method == 'POST':
+        school_id = request.POST.get('school')
+        if school_id:
+            school = get_object_or_404(School, id=school_id)
+            profile.school = school
+            profile.save()
+            messages.success(request, f'You have successfully selected {school.name}')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Please select a school')
+    
+    context = {
+        'schools': schools,
+    }
+    return render(request, 'base/select_school.html', context)
+
+@login_required
 def vote(request):
     now = timezone.now()
     election = Election.objects.filter(
@@ -70,6 +97,11 @@ def vote(request):
             messages.error(request, "Your account is not yet verified to vote.")
             return redirect('settings')
             
+        # Check if user has school assigned
+        if not request.user.profile.school:
+            messages.info(request, "Please select your school before voting.")
+            return redirect('select_school')
+            
         # Check if user has already voted in this election
         if voter.votes.filter(election=election).exists():
             messages.info(request, "You have already voted in this election.")
@@ -79,7 +111,15 @@ def vote(request):
         messages.error(request, "You are not registered as a voter.")
         return redirect('settings')
 
+    # Get positions and filter candidates by voter's school
     positions = Position.objects.filter(election=election).order_by('order')
+    
+    # Prepare positions with school-filtered candidates
+    for position in positions:
+        position.candidates_list = position.candidates.filter(
+            school=request.user.profile.school,
+            is_approved=True
+        )
     
     if request.method == 'POST':
         votes = {}
@@ -99,7 +139,12 @@ def vote(request):
                 abstentions.append(position)
             elif candidate_id:
                 try:
-                    candidate = Candidate.objects.get(id=candidate_id, position=position)
+                    # Verify candidate belongs to voter's school
+                    candidate = Candidate.objects.get(
+                        id=candidate_id, 
+                        position=position,
+                        school=request.user.profile.school
+                    )
                     votes[position] = candidate
                 except Candidate.DoesNotExist:
                     messages.error(request, f"Invalid candidate selected for {position.title}")
@@ -139,17 +184,29 @@ def vote(request):
     }
     return render(request, 'base/voting.html', context)
 
+
 # In views.py
 @login_required
 def candidate(request):
     active_election = Election.objects.filter(is_active=True).first()
-    filters = Candidate.objects.filter()
+    
+    # Check if user has a school assigned
+    if not request.user.profile.school:
+        messages.info(request, "Please select your school to view candidates.")
+        return redirect('select_school')
+    
     selected_filter = request.GET.get('filter')
     position_filter = request.GET.get('position')
     search_query = request.GET.get('search', '')
     
-    candidates = Candidate.objects.filter(position__election=active_election)
+    # Only show candidates from the user's school
+    candidates = Candidate.objects.filter(
+        position__election=active_election,
+        is_approved=True,
+        school=request.user.profile.school  # Filter by user's school
+    )
     
+    # Apply other filters
     if selected_filter:
         candidates = candidates.filter(
             Q(position__title__icontains=selected_filter) |
@@ -168,8 +225,11 @@ def candidate(request):
             Q(manifesto__icontains=search_query)
         )
     
-    # Calculate total verified voters
-    total_voters = Voter.objects.filter(is_verified=True).count()
+    # Calculate total verified voters in the same school
+    total_voters = Voter.objects.filter(
+        is_verified=True,
+        user__profile__school=request.user.profile.school
+    ).count()
     
     # Annotate candidates with vote count and percentage
     candidates = candidates.annotate(
@@ -183,18 +243,22 @@ def candidate(request):
         else:
             candidate.percentage = 0
     
-    positions = Position.objects.filter(election=active_election).order_by('order')
+    positions = Position.objects.filter(
+        election=active_election,
+        candidates__school=request.user.profile.school  # Only positions with candidates from user's school
+    ).order_by('order').distinct()
+    
     positions = positions.annotate(candidate_count=Count('candidates'))
     
     context = {
         'active_election': active_election,
         'candidates': candidates,
-        'filters': filters,
         'positions': positions,
         'selected_filter': selected_filter,
         'position_filter': position_filter,
         'search_query': search_query,
         'total_voters': total_voters,
+        'user_school': request.user.profile.school,  # Pass user's school to template
     }
     return render(request, 'base/candidate.html', context)
 
@@ -212,6 +276,11 @@ def candidate_detail(request, candidate_id):
 @login_required
 def vote_for_candidate(request, candidate_id):
     candidate = get_object_or_404(Candidate, id=candidate_id)
+    
+    # Check if candidate belongs to user's school
+    if candidate.school != request.user.profile.school:
+        messages.error(request, "You can only vote for candidates from your own school.")
+        return redirect('candidate')
     
     try:
         voter = request.user.voter

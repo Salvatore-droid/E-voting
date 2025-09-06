@@ -589,7 +589,7 @@
         <div class="user-nav">
             <div class="user-profile" id="userProfileDropdown">
                 <div class="profile-picture">
-                    <img src="{{ user.profile.get_profile_picture_url }}" alt="{{ request.user.get_full_name }}">
+                    <img src="{{ user.profile.get_profile_picture_url }}" alt="{{ request.user.get_full_name }}" onerror="this.src='{% static 'images/default.jpg' %}'">
                 </div>
                 <span class="username">{{ request.user.get_full_name|default:request.user.username }}</span>
                 <i class="fas fa-chevron-down"></i>

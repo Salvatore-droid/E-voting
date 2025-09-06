@@ -1,0 +1,392 @@
+{% extends 'base/base.html' %}
+{% block content %}
+{% load static %}
+
+<style>
+    /* School Selection Styles */
+    .school-selection-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .selection-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .selection-header h1 {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+
+    .selection-header p {
+        color: #666;
+        font-size: 1.1rem;
+        max-width: 700px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .schools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .school-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        border: 2px solid transparent;
+    }
+
+    .school-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        border-color: var(--secondary-color);
+    }
+
+    .school-card.selected {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0,51,102,0.1);
+    }
+
+    .school-card.selected::after {
+        content: '\f00c';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 30px;
+        height: 30px;
+        background: var(--success-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        z-index: 2;
+    }
+
+    .school-banner {
+        height: 120px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .school-banner-color {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.8;
+    }
+
+    .school-code {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--primary-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .school-info {
+        padding: 2rem 1.5rem 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .school-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 4px solid white;
+        object-fit: cover;
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+
+    .school-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+    }
+
+    .school-description {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .school-format {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+
+    .format-label {
+        font-size: 0.8rem;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .format-value {
+        font-family: monospace;
+        font-size: 0.9rem;
+        color: var(--primary-color);
+        word-break: break-all;
+    }
+
+    .select-button {
+        width: 100%;
+        padding: 0.8rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid var(--primary-color);
+        background: white;
+        color: var(--primary-color);
+    }
+
+    .select-button:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .school-card.selected .select-button {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .selection-help {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    .help-title {
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .help-title i {
+        color: var(--secondary-color);
+    }
+
+    .help-content {
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .help-content ul {
+        margin-left: 1.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .help-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    .selection-actions {
+        text-align: center;
+    }
+
+    .confirm-button {
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        background: var(--primary-color);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .confirm-button:hover {
+        background: #00264d;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,51,102,0.2);
+    }
+
+    .confirm-button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .schools-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .school-selection-container {
+            padding: 1rem;
+        }
+        
+        .selection-header h1 {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .school-card {
+            margin-bottom: 1rem;
+        }
+        
+        .school-name {
+            font-size: 1.2rem;
+        }
+    }
+</style>
+
+<div class="school-selection-container">
+    <!-- Page Header -->
+    <div class="selection-header">
+        <h1>Select Your School</h1>
+        <p>Choose the school you belong to based on your registration number format. This determines which candidates you can vote for.</p>
+    </div>
+
+    <!-- Help Section -->
+    <div class="selection-help">
+        <h3 class="help-title">
+            <i class="fas fa-info-circle"></i> How to identify your school
+        </h3>
+        <div class="help-content">
+            <p>Your student registration number follows specific patterns that identify your school:</p>
+            <ul>
+                <li><strong>School of Science:</strong> Starts with CSC, ARG, FDA, etc.</li>
+                <li><strong>School of Business:</strong> Starts with BCOM, BBA, BAF, etc.</li>
+                <li><strong>School of Arts:</strong> Starts with ART, MUS, LIT, etc.</li>
+                <li><strong>School of Engineering:</strong> Starts with ENG, MEC, ELE, etc.</li>
+            </ul>
+            <p>Select the school that matches the prefix of your registration number.</p>
+        </div>
+    </div>
+
+    <form method="POST" id="schoolForm">
+        {% csrf_token %}
+        
+        <!-- Schools Grid -->
+        <div class="schools-grid">
+            {% for school in schools %}
+            <div class="school-card" onclick="selectSchool('{{ school.id }}')">
+                <div class="school-banner">
+                    <div class="school-banner-color" style="background: {{ school.color }};"></div>
+                    <div class="school-code">{{ school.code }}</div>
+                </div>
+                <div class="school-info">
+                    <div class="school-avatar">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="school-name">{{ school.name }}</h3>
+                    <p class="school-description">{{ school.description }}</p>
+                    
+                    <div class="school-format">
+                        <div class="format-label">Registration Format</div>
+                        <div class="format-value">{{ school.registration_format }}</div>
+                    </div>
+                    
+                    <button type="button" class="select-button" data-school-id="{{ school.id }}">
+                        <i class="fas fa-check"></i> Select This School
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Hidden input for selected school -->
+        <input type="hidden" name="school" id="selectedSchool" value="">
+        
+        <!-- Action Buttons -->
+        <div class="selection-actions">
+            <button type="submit" class="confirm-button" id="confirmButton" disabled>
+                <i class="fas fa-check-circle"></i> Confirm School Selection
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function selectSchool(schoolId) {
+        // Update hidden input
+        document.getElementById('selectedSchool').value = schoolId;
+        
+        // Remove selected class from all cards
+        document.querySelectorAll('.school-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Add selected class to clicked card
+        const selectedCard = document.querySelector(`.school-card button[data-school-id="${schoolId}"]`).closest('.school-card');
+        selectedCard.classList.add('selected');
+        
+        // Enable confirm button
+        document.getElementById('confirmButton').disabled = false;
+        
+        // Scroll to confirm button
+        document.getElementById('confirmButton').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+    }
+    
+    // Handle form submission
+    document.getElementById('schoolForm').addEventListener('submit', function(e) {
+        if (!document.getElementById('selectedSchool').value) {
+            e.preventDefault();
+            alert('Please select a school before continuing.');
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% block content %}
+{% load static %}
 
 <style>
     /* Candidate Detail Styles */
@@ -224,7 +225,7 @@
 <div class="candidate-detail">
     <div class="candidate-header">
         <div class="candidate-image">
-            <img src="{{ candidate.image.url|default:'https://via.placeholder.com/400x500' }}" alt="{{ candidate.user.get_full_name }}">
+            <img src="{{ candidate.imageURL }}" alt="{{ candidate.user.get_full_name }}" onerror="this.src='{% static 'images/default.jpg' %}'">
             {% if candidate.party %}
             <div class="candidate-party">{{ candidate.party }}</div>
             {% endif %}

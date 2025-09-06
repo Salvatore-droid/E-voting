@@ -140,8 +140,14 @@ LOGIN_URL='login_view'
 
 MEDIA_URL = 'media/'
 
-# settings.py
 
+# Blockchain settings
+BLOCKCHAIN_NODE_URL = os.environ.get('BLOCKCHAIN_NODE_URL', 'http://localhost:8545')
+BLOCKCHAIN_CONTRACT_ABI_PATH = os.path.join(BASE_DIR, 'contracts', 'VotingContract.abi')
+BLOCKCHAIN_CONTRACT_ADDRESS = os.environ.get('BLOCKCHAIN_CONTRACT_ADDRESS', '')
+BLOCKCHAIN_CHAIN_ID = int(os.environ.get('BLOCKCHAIN_CHAIN_ID', 1337))  # 1337 is common for Ganache
+BLOCKCHAIN_ADMIN_ACCOUNT = os.environ.get('BLOCKCHAIN_ADMIN_ACCOUNT', '')
+BLOCKCHAIN_PRIVATE_KEY = os.environ.get('BLOCKCHAIN_PRIVATE_KEY', '')
 
 
 
@@ -189,7 +195,7 @@ JAZZMIN_SETTINGS = {
         {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
         
         # external url that opens in a new window (Permissions can be added)
-        {"name": "Frontend Site", "url": "/", "new_window": True},
+        {"name": "Frontend Site", "url": "/", "new_window": False},
         
         # model admin to link to (Permissions checked against model)
         {"model": "auth.User"},

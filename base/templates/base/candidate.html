@@ -1,7 +1,112 @@
 {% extends 'base/base.html' %}
 {% block content %}
+{% load static %}
 
 <style>
+    /* Add these styles to your existing CSS */
+    .school-header {
+        background: linear-gradient(135deg, {{ user_school.color }}, #001a33);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .school-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+    }
+
+    .school-header-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .school-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        backdrop-filter: blur(5px);
+    }
+
+    .school-title {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .school-subtitle {
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+
+    .school-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .school-stat {
+        text-align: center;
+    }
+
+    .school-stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+
+    .school-stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .candidate-school-badge {
+        background: {{ user_school.color }};
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+
+    .no-candidates {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 10px;
+        grid-column: 1 / -1;
+    }
+
+    .no-candidates i {
+        font-size: 3rem;
+        color: #ccc;
+        margin-bottom: 1.5rem;
+    }
+
+    .no-candidates h3 {
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .no-candidates p {
+        color: #888;
+        margin-bottom: 2rem;
+    }
     /* Candidate Page Styles */
     .candidates-container {
         max-width: 1400px;
@@ -543,10 +648,34 @@
 </div>
 
 <div class="candidates-container">
+    <!-- School Header -->
+    <div class="school-header">
+        <div class="school-header-content">
+            <div class="school-badge">{{ user_school.code }}</div>
+            <h1 class="school-title">{{ user_school.name }} Candidates</h1>
+            <p class="school-subtitle">View and vote for candidates from your school</p>
+            
+            <div class="school-stats">
+                <div class="school-stat">
+                    <div class="school-stat-number">{{ candidates|length }}</div>
+                    <div class="school-stat-label">Candidates</div>
+                </div>
+                <div class="school-stat">
+                    <div class="school-stat-number">{{ total_voters }}</div>
+                    <div class="school-stat-label">Voters in School</div>
+                </div>
+                <div class="school-stat">
+                    <div class="school-stat-number">{{ positions|length }}</div>
+                    <div class="school-stat-label">Positions</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Page Header -->
     <div class="page-header">
-        <h1>Meet Your Candidates</h1>
-        <p>Get to know the individuals running in the {{ active_election.title }} election</p>
+        <h1>Your School Candidates</h1>
+        <p>Get to know the individuals running in the {{ active_election.title }} election from {{ user_school.name }}</p>
     </div>
 
     <!-- Filter Controls -->
@@ -571,86 +700,87 @@
     <!-- Group Candidates by Position -->
     {% regroup candidates by position as position_groups %}
     
-    {% for position_group in position_groups %}
-    <div class="position-section {% if 'president' in position_group.grouper.title|lower %}presidential-section{% endif %}">
-        <div class="section-header">
-            <h2 class="section-title">
-                {% if 'president' in position_group.grouper.title|lower %}
-                    <i class="fas fa-crown"></i>
-                {% else %}
-                    <i class="fas fa-user-tie"></i>
-                {% endif %}
-                {{ position_group.grouper.title }}
-            </h2>
-            <span class="section-count">{{ position_group.list|length }} Candidate{{ position_group.list|pluralize }}</span>
-        </div>
-        
-        <div class="candidates-grid">
-            {% for candidate in position_group.list %}
-            <div class="candidate-card">
-                <div class="candidate-banner">
-                    {% if candidate.party %}
-                    <div class="candidate-party">{{ candidate.party }}</div>
+    {% if position_groups %}
+        {% for position_group in position_groups %}
+        <div class="position-section {% if 'president' in position_group.grouper.title|lower %}presidential-section{% endif %}">
+            <div class="section-header">
+                <h2 class="section-title">
+                    {% if 'president' in position_group.grouper.title|lower %}
+                        <i class="fas fa-crown"></i>
+                    {% else %}
+                        <i class="fas fa-user-tie"></i>
                     {% endif %}
-                    <img src="{{ candidate.image.url|default:'/static/images/default_candidate.jpg' }}" 
-                         alt="{{ candidate.user.get_full_name }}" 
-                         class="candidate-avatar"
-                         onerror="this.src='/static/images/default_candidate.jpg'">
-                </div>
-                <div class="candidate-info">
-                    <h3 class="candidate-name">{{ candidate.user.get_full_name }}</h3>
-                    <div class="candidate-position">{{ candidate.position.title }}</div>
-                    <div class="candidate-course">
-                        <i class="fas fa-graduation-cap"></i>
-                        <span>{{ candidate.course_year }}</span>
-                    </div>
-                    <p class="candidate-bio">
-                        {{ candidate.bio|truncatewords:25 }}
-                    </p>
-                    <div class="candidate-stats">
-                        <div class="candidate-stat">
-                            <div class="stat-value">{{ candidate.vote_count }}</div>
-                            <div class="stat-label">Votes</div>
-                        </div>
-                        <div class="candidate-stat">
-                            <!-- Calculate the actual percentage -->
-                            <div class="stat-value percentage-display" data-percentage="{{ candidate.percentage|floatformat:2 }}">
-                                0%
-                            </div>
-                            <div class="stat-label">Approval</div>
-                            
-                            <!-- Percentage visualization -->
-                            <div class="percentage-container">
-                                <div class="percentage-bar" style="--target-percentage: {{ candidate.percentage|floatformat:2 }}%"></div>
-                            </div>
-                            <div class="percentage-text">0% of total voters</div>
-                        </div>
-                    </div>
-                    <div class="candidate-actions">
-                        {% if request.user.is_authenticated and request.user.voter.is_verified %}
-                            <a href="{% url 'vote' candidate.id %}" class="candidate-btn btn-vote">
-                                <i class="fas fa-vote-yea"></i> Vote
-                            </a>
-                        {% endif %}
-                        <a href="{% url 'candidate_detail' candidate.id %}" class="candidate-btn btn-details">
-                            <i class="fas fa-eye"></i> View
-                        </a>
-                    </div>
-                </div>
+                    {{ position_group.grouper.title }}
+                </h2>
+                <span class="section-count">{{ position_group.list|length }} Candidate{{ position_group.list|pluralize }}</span>
             </div>
-            {% endfor %}
+            
+            <div class="candidates-grid">
+                {% for candidate in position_group.list %}
+                <div class="candidate-card">
+                    <div class="candidate-banner">
+                        {% if candidate.party %}
+                        <div class="candidate-party">{{ candidate.party }}</div>
+                        {% endif %}
+                        <img src="{{ candidate.imageURL }}" 
+                             alt="{{ candidate.user.get_full_name }}" 
+                             class="candidate-avatar"
+                             onerror="this.src='{% static 'images/default.jpg' %}'">
+                    </div>
+                    <div class="candidate-info">
+                        <div class="candidate-school-badge">{{ candidate.school.code }}</div>
+                        <h3 class="candidate-name">{{ candidate.user.get_full_name }}</h3>
+                        <div class="candidate-position">{{ candidate.position.title }}</div>
+                        <div class="candidate-course">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>{{ candidate.course_year }}</span>
+                        </div>
+                        <p class="candidate-bio">
+                            {{ candidate.bio|truncatewords:25 }}
+                        </p>
+                        <div class="candidate-stats">
+                            <div class="candidate-stat">
+                                <div class="stat-value">{{ candidate.vote_count }}</div>
+                                <div class="stat-label">Votes</div>
+                            </div>
+                            <div class="candidate-stat">
+                                <!-- Calculate the actual percentage -->
+                                <div class="stat-value percentage-display" data-percentage="{{ candidate.percentage|floatformat:2 }}">
+                                    0%
+                                </div>
+                                <div class="stat-label">Approval</div>
+                                
+                                <!-- Percentage visualization -->
+                                <div class="percentage-container">
+                                    <div class="percentage-bar" style="--target-percentage: {{ candidate.percentage|floatformat:2 }}%"></div>
+                                </div>
+                                <div class="percentage-text">0% of school voters</div>
+                            </div>
+                        </div>
+                        <div class="candidate-actions">
+                            {% if request.user.is_authenticated and request.user.voter.is_verified %}
+                                <a href="{% url 'vote' candidate.id %}" class="candidate-btn btn-vote">
+                                    <i class="fas fa-vote-yea"></i> Vote
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'candidate_detail' candidate.id %}" class="candidate-btn btn-details">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
-    {% empty %}
-    <div class="empty-state">
-        <i class="fas fa-user-slash"></i>
-        <h3>No Candidates Found</h3>
-        <p>There are currently no candidates matching your search criteria. Try adjusting your filters or check back later.</p>
-        <a href="?" class="candidate-btn btn-vote">
-            <i class="fas fa-sync-alt"></i> Reset Filters
-        </a>
-    </div>
-    {% endfor %}
+        {% endfor %}
+    {% else %}
+        <div class="no-candidates">
+            <i class="fas fa-user-slash"></i>
+            <h3>No Candidates From Your School</h3>
+            <p>There are currently no candidates from {{ user_school.name }} in this election.</p>
+            <p>Check back later or contact election administrators for more information.</p>
+        </div>
+    {% endif %}
 </div>
 
 <script>
@@ -681,13 +811,14 @@
                     clearInterval(counter);
                 }
                 display.textContent = currentPercentage.toFixed(1) + '%';
-                text.textContent = currentPercentage.toFixed(1) + '% of total voters';
+                text.textContent = currentPercentage.toFixed(1) + '% of school voters';
             }, interval);
         });
     }
     
     // Run the animation when the page loads
     document.addEventListener('DOMContentLoaded', animatePercentages);
+    
     // Search functionality
     document.querySelector('.search-box input').addEventListener('keyup', function(e) {
         if (e.keyCode === 13) {
@@ -706,8 +837,6 @@
             window.location.search = urlParams.toString();
         }
     });
-
-    // Position filter functionality is handled by links
 </script>
 
 {% endblock %}

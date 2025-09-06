@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% block content %}
+{% load static %}
 
 <style>
     /* Voting Header */
@@ -638,7 +639,7 @@
                        {% if position.is_required %}required{% endif %}
                        style="display: none;">
                 <div class="candidate-info">
-                    <img src="{{ candidate.image.url|default:'https://via.placeholder.com/80' }}" alt="Candidate" class="candidate-avatar">
+                    <img src="{{ candidate.imageURL }}" alt="Candidate" class="candidate-avatar" onerror="this.src='{% static 'images/default.jpg' %}'">
                     <div class="candidate-details">
                         <div class="candidate-name">{{ candidate.user.get_full_name }}</div>
                         {% if candidate.party %}
@@ -712,6 +713,7 @@
             <div class="receipt-vote">
                 <div class="receipt-label">{{ position.title }}</div>
                 <div class="receipt-value" id="review-{{ position.id }}">Not selected</div>
+                <div class="receipt-value">{{ candidate.user.get_full_name }}</div>
             </div>
             {% endfor %}
         </div>

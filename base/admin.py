@@ -4,11 +4,19 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from .models import *
 
+
 # Define an inline admin for UserProfile
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
     verbose_name_plural = 'Profile'
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'student_id', 'school', 'phone_number')
+    search_fields = ('user__username', 'student_id', 'school__name')
+    list_filter = ('school', 'department')
+    autocomplete_fields = ('user', 'school')
 
 # Extend the default UserAdmin to include UserProfile
 class CustomUserAdmin(UserAdmin):
@@ -20,6 +28,13 @@ class CustomUserAdmin(UserAdmin):
     def get_full_name(self, obj):
         return obj.get_full_name()
     get_full_name.short_description = 'Full Name'
+
+@admin.register(School)
+class SchoolAdmin(admin.ModelAdmin):
+    list_display = ('name', 'registration_format')
+    search_fields = ['name']
+    list_filter = ('name',)
+
 
 # Election Admin
 class ElectionAdmin(admin.ModelAdmin):
@@ -42,14 +57,24 @@ class PositionAdmin(admin.ModelAdmin):
     ordering = ('election', 'order')
 
 # Candidate Admin
+@admin.register(Candidate)
 class CandidateAdmin(admin.ModelAdmin):
-    list_display = ('user', 'position', 'party', 'is_approved', 'votes_count', 'approval_rating')
-    list_filter = ('position__election', 'position', 'is_approved', 'party')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'party')
-    readonly_fields = ('votes_count', 'approval_rating', 'created_at')
+    list_display = ('user', 'position', 'school', 'is_approved')
+    search_fields = ('user__username', 'position__title', 'school__name')
+    list_filter = ('school', 'position', 'is_approved')
+    autocomplete_fields = ('user', 'position', 'school')
     
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user', 'position')
+        # For non-superusers, only show candidates from their school
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        try:
+            if hasattr(request.user, 'profile') and request.user.profile.school:
+                return qs.filter(school=request.user.profile.school)
+        except UserProfile.DoesNotExist:
+            pass
+        return qs.none()
 
 # Voter Admin
 class VoterAdmin(admin.ModelAdmin):
@@ -101,10 +126,8 @@ class ElectionTimelineEventAdmin(admin.ModelAdmin):
 # Register models
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(UserProfile)
 admin.site.register(Election, ElectionAdmin)
 admin.site.register(Position, PositionAdmin)
-admin.site.register(Candidate, CandidateAdmin)
 admin.site.register(CandidateStat)
 admin.site.register(Voter, VoterAdmin)
 admin.site.register(Vote, VoteAdmin)
